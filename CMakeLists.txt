@@ -10,7 +10,7 @@ set(CMAKE_COLOR_MAKEFILE ON)
 
 project(Darvaza)
 set(target Darvaza)
-set(copyright "igorski.nl 2020")
+set(copyright "igorski.nl 2022")
 set(major_version 1)
 set(minor_version 0)
 set(release_number 1)
@@ -117,6 +117,10 @@ set(vst_sources
     src/vst.cpp
     src/vstentry.cpp
     src/version.h
+    src/wavegenerator.h
+    src/wavegenerator.cpp
+    src/wavetable.h
+    src/wavetable.cpp
     src/ui/controller.h
     src/ui/controller.cpp
     src/ui/uimessagecontroller.h
@@ -295,7 +299,7 @@ if (LINUX)
         fontconfig
         dl
     )
-    target_link_libraries(${target} PRIVATE ${LINUX_LIBRARIES}) 
+    target_link_libraries(${target} PRIVATE ${LINUX_LIBRARIES})
 endif()
 
 ## Include Windows specific libraries
