@@ -79,15 +79,15 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
 // --- AUTO-GENERATED START
 
     RangeParameter* oddSpeedParam = new RangeParameter(
-        USTRING( "Odd channel speed" ), kOddSpeedId, USTRING( "Hz" ),
-        0.f, 10.f, 0.f,
+        USTRING( "Odd channel speed" ), kOddSpeedId, USTRING( "steps" ),
+        0.f, 1.f, 0.f,
         0, ParameterInfo::kCanAutomate, unitId
     );
     parameters.addParameter( oddSpeedParam );
 
     RangeParameter* evenSpeedParam = new RangeParameter(
-        USTRING( "Even channel speed" ), kEvenSpeedId, USTRING( "Hz" ),
-        0.f, 10.f, 0.f,
+        USTRING( "Even channel speed" ), kEvenSpeedId, USTRING( "steps" ),
+        0.f, 1.f, 0.f,
         0, ParameterInfo::kCanAutomate, unitId
     );
     parameters.addParameter( evenSpeedParam );
@@ -98,20 +98,6 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
         0, ParameterInfo::kCanAutomate, unitId
     );
     parameters.addParameter( bitDepthParam );
-
-    RangeParameter* wetMixParam = new RangeParameter(
-        USTRING( "Wet mix" ), kWetMixId, USTRING( "%" ),
-        0.f, 1.f, 1.f,
-        0, ParameterInfo::kCanAutomate, unitId
-    );
-    parameters.addParameter( wetMixParam );
-
-    RangeParameter* dryMixParam = new RangeParameter(
-        USTRING( "Dry mix" ), kDryMixId, USTRING( "%" ),
-        0.f, 1.f, 0.f,
-        0, ParameterInfo::kCanAutomate, unitId
-    );
-    parameters.addParameter( dryMixParam );
 
 // --- AUTO-GENERATED END
 
@@ -149,14 +135,6 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         if ( state->read( &savedBitDepth, sizeof( float )) != kResultOk )
             return kResultFalse;
 
-        float savedWetMix = 1.f;
-        if ( state->read( &savedWetMix, sizeof( float )) != kResultOk )
-            return kResultFalse;
-
-        float savedDryMix = 1.f;
-        if ( state->read( &savedDryMix, sizeof( float )) != kResultOk )
-            return kResultFalse;
-
 // --- AUTO-GENERATED SETSTATE END
 
 #if BYTEORDER == kBigEndian
@@ -165,8 +143,6 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
     SWAP_32( savedOddSpeed )
     SWAP_32( savedEvenSpeed )
     SWAP_32( savedBitDepth )
-    SWAP_32( savedWetMix )
-    SWAP_32( savedDryMix )
 
 // --- AUTO-GENERATED SETSTATE SWAP END
 
@@ -175,8 +151,6 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         setParamNormalized( kOddSpeedId, savedOddSpeed );
         setParamNormalized( kEvenSpeedId, savedEvenSpeed );
         setParamNormalized( kBitDepthId, savedBitDepth );
-        setParamNormalized( kWetMixId, savedWetMix );
-        setParamNormalized( kDryMixId, savedDryMix );
 
 // --- AUTO-GENERATED SETSTATE SETPARAM END
 
@@ -284,27 +258,17 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
 // --- AUTO-GENERATED GETPARAM START
 
         case kOddSpeedId:
-            sprintf( text, "%.2f Hz", normalizedParamToPlain( tag, valueNormalized ));
+            sprintf( text, "%.d steps", ( int ) ( 31 * valueNormalized ) + 1 );
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
         case kEvenSpeedId:
-            sprintf( text, "%.2f Hz", normalizedParamToPlain( tag, valueNormalized ));
+            sprintf( text, "%.d steps", ( int ) ( 31 * valueNormalized ) + 1 );
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
         case kBitDepthId:
             sprintf( text, "%.d Bits", ( int ) ( 15 * valueNormalized ) + 1 );
-            Steinberg::UString( string, 128 ).fromAscii( text );
-            return kResultTrue;
-
-        case kWetMixId:
-            sprintf( text, "%.2d %%", ( int ) ( valueNormalized * 100.f ));
-            Steinberg::UString( string, 128 ).fromAscii( text );
-            return kResultTrue;
-
-        case kDryMixId:
-            sprintf( text, "%.2d %%", ( int ) ( valueNormalized * 100.f ));
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 

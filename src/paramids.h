@@ -33,8 +33,6 @@ enum
     kOddSpeedId = 0,    // Odd channel speed
     kEvenSpeedId = 1,    // Even channel speed
     kBitDepthId = 2,    // Torture
-    kWetMixId = 3,    // Wet mix
-    kDryMixId = 4,    // Dry mix
 
 // --- AUTO-GENERATED END
 

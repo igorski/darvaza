@@ -143,16 +143,6 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
                             fBitDepth = ( float ) value;
                         break;
 
-                    case kWetMixId:
-                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fWetMix = ( float ) value;
-                        break;
-
-                    case kDryMixId:
-                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fDryMix = ( float ) value;
-                        break;
-
 // --- AUTO-GENERATED PROCESS END
                 }
                 syncModel();
@@ -163,12 +153,10 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
     // according to docs: processing context (optional, but most welcome)
 
     if ( data.processContext != nullptr ) {
-        // in case you want to do tempo synchronization with the host
-        /*
         pluginProcess->setTempo(
-            data.processContext->tempo, data.processContext->timeSigNumerator, data.processContext->timeSigDenominator
+            data.processContext->tempo, data.processContext->timeSigNumerator, data.processContext->timeSigDenominator,
+            fEvenSpeed, fOddSpeed
         );
-        */
     }
 
     //---2) Read input events-------------
@@ -261,14 +249,6 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
     if ( state->read( &savedBitDepth, sizeof ( float )) != kResultOk )
         return kResultFalse;
 
-    float savedWetMix = 0.f;
-    if ( state->read( &savedWetMix, sizeof ( float )) != kResultOk )
-        return kResultFalse;
-
-    float savedDryMix = 0.f;
-    if ( state->read( &savedDryMix, sizeof ( float )) != kResultOk )
-        return kResultFalse;
-
 // --- AUTO-GENERATED SETSTATE END
 
 #if BYTEORDER == kBigEndian
@@ -277,8 +257,6 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
    SWAP_32( savedOddSpeed )
    SWAP_32( savedEvenSpeed )
    SWAP_32( savedBitDepth )
-   SWAP_32( savedWetMix )
-   SWAP_32( savedDryMix )
 
 // --- AUTO-GENERATED SETSTATE SWAP END
 
@@ -288,8 +266,6 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
     fOddSpeed = savedOddSpeed;
     fEvenSpeed = savedEvenSpeed;
     fBitDepth = savedBitDepth;
-    fWetMix = savedWetMix;
-    fDryMix = savedDryMix;
 
 // --- AUTO-GENERATED SETSTATE APPLY END
 
@@ -337,8 +313,6 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
     float toSaveOddSpeed = fOddSpeed;
     float toSaveEvenSpeed = fEvenSpeed;
     float toSaveBitDepth = fBitDepth;
-    float toSaveWetMix = fWetMix;
-    float toSaveDryMix = fDryMix;
 
 // --- AUTO-GENERATED GETSTATE END
 
@@ -349,8 +323,6 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
    SWAP_32( toSaveOddSpeed )
    SWAP_32( toSaveEvenSpeed )
    SWAP_32( toSaveBitDepth )
-   SWAP_32( toSaveWetMix )
-   SWAP_32( toSaveDryMix )
 
 // --- AUTO-GENERATED GETSTATE SWAP END
 
@@ -360,8 +332,6 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
     state->write( &toSaveOddSpeed, sizeof( float ));
     state->write( &toSaveEvenSpeed, sizeof( float ));
     state->write( &toSaveBitDepth, sizeof( float ));
-    state->write( &toSaveWetMix, sizeof( float ));
-    state->write( &toSaveDryMix, sizeof( float ));
 
 // --- AUTO-GENERATED GETSTATE APPLY END
 
@@ -491,9 +461,6 @@ void Darvaza::syncModel()
     // NOTE: when dealing with "bool"-types, use Calc::toBool() to determine on/off
     pluginProcess->setGateSpeed( fEvenSpeed, fOddSpeed );
     pluginProcess->bitCrusher->setAmount( fBitDepth );
-    // output mix
-    pluginProcess->setDryMix( fDryMix );
-    pluginProcess->setWetMix( fWetMix );
 }
 
 }

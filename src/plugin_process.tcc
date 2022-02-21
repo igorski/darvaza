@@ -35,11 +35,6 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
     SampleType inSample;
     int i, readIndex;
 
-    bool mixDry = _dryMix != 0.f;
-
-    SampleType dryMix = ( SampleType ) _dryMix;
-    SampleType wetMix = ( SampleType ) _wetMix;
-
     float readPointer;
     int writePointer;
     int recordMax = _maxRecordBufferSize - 1;
@@ -82,15 +77,17 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
             inSample = channelInBuffer[ i ];
 
-            // apply the gate and wet mix (e.g. the effected signal)
+            // apply the gate
 
-            channelOutBuffer[ i ] = ( SampleType ) ( channelPreMixBuffer[ i ] * table->peek() ) * wetMix;
+            SampleType gateLevel = ( SampleType ) table->peek();
 
-            // dry mix (e.g. mix in the input signal)
+            // write the mix buffer for the gate value
 
-            if ( mixDry ) {
-                channelOutBuffer[ i ] += ( inSample * dryMix );
-            }
+            channelOutBuffer[ i ] = ( SampleType ) ( channelPreMixBuffer[ i ] ) * gateLevel;
+
+            // dry mix (e.g. mix in the input signal on the negative gate)
+
+            channelOutBuffer[ i ] += ( inSample * ( 1.0 - gateLevel ));
         }
     }
     // update read/write indices

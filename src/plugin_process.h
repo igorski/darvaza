@@ -52,8 +52,16 @@ class PluginProcess {
         // setters
 
         void setGateSpeed( float evenSpeed, float oddSpeed );
-        void setDryMix( float value );
-        void setWetMix( float value );
+
+        // others
+
+        // synchronize the gate tempo with the host
+        // tempo is in BPM, time signature provided as: timeSigNumerator / timeSigDenominator (e.g. 3/4)
+
+        void setTempo( double tempo, int32 timeSigNumerator, int32 timeSigDenominator, float evenSteps, float oddSteps );
+
+        // resets gate envelope to 0 position (e.g. on sequencer stop/start)
+        void syncGates();
 
         // child processors
 
@@ -72,9 +80,12 @@ class PluginProcess {
         int _writePointer;
         int _maxRecordBufferSize;
 
-        float _dryMix;
-        float _wetMix;
         int _amountOfChannels;
+
+        double _tempo;
+        int32 _timeSigNumerator;
+        int32 _timeSigDenominator;
+        float _fullMeasureDuration;
 
         // ensures the pre- and post mix buffers match the appropriate amount of channels
         // and buffer size. the buffers are pooled so this can be called upon each process

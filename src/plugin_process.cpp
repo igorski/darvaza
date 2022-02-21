@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #include "plugin_process.h"
+#include "calc.h"
 #include "tablepool.h"
 #include <math.h>
 
@@ -29,21 +30,26 @@ namespace Igorski {
 PluginProcess::PluginProcess( int amountOfChannels ) {
     _amountOfChannels = amountOfChannels;
 
-    setDryMix( .5f );
-    setWetMix( .5f );
-
     // cache the waveforms (as sample rate is now known)
 
-    TablePool::setTable( WaveGenerator::generate( 512, WaveGenerator::WaveForms::SINE ), WaveGenerator::WaveForms::SINE );
+    WaveGenerator::WaveForms waveForm = WaveGenerator::WaveForms::SQUARE;
+
+    TablePool::setTable( WaveGenerator::generate( 512, waveForm ), waveForm );
 
     for ( int i = 0; i < amountOfChannels; ++i ) {
-        _waveTables.push_back( TablePool::getTable( WaveGenerator::WaveForms::SINE )->clone() );
+        _waveTables.push_back( TablePool::getTable( waveForm )->clone() );
     }
 
     // read / write variables
 
     _readPointer  = 0.f;
     _writePointer = 0;
+
+    // these will be synced to host, see vst.cpp. here we default to 120 BPM in 4/4 time
+    _tempo               = 120.f;
+    _fullMeasureDuration = 2.f;
+    _timeSigNumerator    = 4;
+    _timeSigDenominator  = 4;
 
     // create the child processors
 
@@ -70,19 +76,36 @@ PluginProcess::~PluginProcess() {
 
 /* setters */
 
-void PluginProcess::setGateSpeed( float evenSpeed, float oddSpeed ) {
+void PluginProcess::setGateSpeed( float evenSteps, float oddSteps )
+{
+    // 1.f / value converts seconds to cycles in Hertz
+    float evenValue = 1.f / ( _fullMeasureDuration / (( 31.f * evenSteps ) + 1.f ));
+    float oddValue  = 1.f / ( _fullMeasureDuration / (( 31.f * oddSteps )  + 1.f ));
+
     for ( int i = 0; i < _amountOfChannels; ++i ) {
-        // TODO : normalized to Hz
-        _waveTables.at( i )->setFrequency( i % 2 == 0 ? 0.5f : 5.f );
+        _waveTables.at( i )->setFrequency(( i + 1 ) % 2 == 0 ? evenValue : oddValue );
     }
 }
 
-void PluginProcess::setDryMix( float value ) {
-    _dryMix = value;
+/* other */
+
+void PluginProcess::setTempo( double tempo, int32 timeSigNumerator, int32 timeSigDenominator, float evenSteps, float oddSteps )
+{
+    if ( _tempo == tempo && _timeSigNumerator == timeSigNumerator && _timeSigDenominator == timeSigDenominator ) {
+        return; // no change
+    }
+
+    _fullMeasureDuration = ( 60.f / _tempo ) * _timeSigDenominator; // seconds per measure
+
+    _timeSigNumerator   = timeSigNumerator;
+    _timeSigDenominator = timeSigDenominator;
+    _tempo              = tempo;
+
+    setGateSpeed( evenSteps, oddSteps );
 }
 
-void PluginProcess::setWetMix( float value ) {
-    _wetMix = value;
+void PluginProcess::syncGates() {
+
 }
 
 }

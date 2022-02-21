@@ -91,8 +91,6 @@ class Darvaza : public AudioEffect
         float fOddSpeed = 0.f;    // Odd channel speed
         float fEvenSpeed = 0.f;    // Even channel speed
         float fBitDepth = 1.f;    // Torture
-        float fWetMix = 1.f;    // Wet mix
-        float fDryMix = 0.f;    // Dry mix
 
 // --- AUTO-GENERATED END
 

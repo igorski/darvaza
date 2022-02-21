@@ -15,7 +15,7 @@
 //         def: String|Number, // optional, default value for this parameter, falls back to min (fractional values require .f suffix)
 //         type: String,       // optional, defaults to float, accepts:
 //                             // 'bool' where the value is either 0 or 1 (on/off)
-//                             // 'pct' (multiplied by 100)
+//                             // 'percent' (multiplied by 100)
 //     },
 //     ui: {               // optional, when defined, will create entry in .uidesc
 //         x: Number,      // x, y coordinates and width and height of control
@@ -27,23 +27,23 @@
 //     customDescr: String,      // optional, custom instruction used in controller.cpp to format value
 // }
 const MODEL = [
+    // gate speeds are normalized 0 - 1 range values that translate to a 1 to 32 range (measure subdivisions)
     {
         name: 'oddSpeed',
         descr: 'Odd channel speed',
-        unitDescr: 'Hz',
-        value: { min: '0.f', max: '10.f' },
+        unitDescr: 'steps',
+        value: { min: '0.f', max: '1.f', def: '0.f', type: 'percent' },
         ui: { x: 199, y: 165, w: 104, h: 21 },
-        normalizedDescr: true
+        customDescr: 'sprintf( text, "%.d steps", ( int ) ( 31 * valueNormalized ) + 1 );'
     },
     {
         name: 'evenSpeed',
         descr: 'Even channel speed',
-        unitDescr: 'Hz',
-        value: { min: '0.f', max: '10.f' },
+        unitDescr: 'steps',
+        value: { min: '0.f', max: '1.f', def: '0.f', type: 'percent' },
         ui: { x: 249, y: 165, w: 104, h: 21 },
-        normalizedDescr: true
+        customDescr: 'sprintf( text, "%.d steps", ( int ) ( 31 * valueNormalized ) + 1 );'
     },
-
     {
         name: 'bitDepth',
         descr: 'Torture',
@@ -52,20 +52,6 @@ const MODEL = [
         ui: { x: 299, y: 165, w: 104, h: 21 },
         // note we treat full resolution as 16-bits (but is in fact whatever host is)
         customDescr: 'sprintf( text, "%.d Bits", ( int ) ( 15 * valueNormalized ) + 1 );'
-    },
-    {
-        name: 'wetMix',
-        descr: 'Wet mix',
-        unitDescr: '%',
-        value: { min: '0.f', max: '1.f', def: '1.f', type: 'percent' },
-        ui: { x: 10, y: 150, w: 134, h: 21 }
-    },
-    {
-        name: 'dryMix',
-        descr: 'Dry mix',
-        unitDescr: '%',
-        value: { min: '0.f', max: '1.f', def: '0.f', type: 'percent' },
-        ui: { x: 10, y: 180, w: 134, h: 21 }
     }
 ];
 
