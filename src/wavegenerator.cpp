@@ -29,10 +29,11 @@
 namespace Igorski {
 namespace WaveGenerator
 {
-    void generate( WaveTable* waveTable, int waveformType )
+    WaveTable* generate( int tableSize, WaveForms waveformType )
     {
+        WaveTable* waveTable = new WaveTable( tableSize, 440.f );
+
         float* outputBuffer = waveTable->getBuffer();
-        int numberOfSamples       = waveTable->tableLength;
 
         int tempValue, partials;
         float frequency, gibbs, sample, tmp, maxValue;
@@ -47,7 +48,7 @@ namespace WaveGenerator
             partials    = nyquist / frequency;
             maxValue    = 0.0;
 
-            for ( int t = 0; t < numberOfSamples; t++ )
+            for ( int t = 0; t < tableSize; t++ )
             {
                 sample = 0.0, tmp = 0.0;
 
@@ -62,37 +63,40 @@ namespace WaveGenerator
                     switch ( waveformType )
                     {
                         case WaveForms::SINE:
-                            sample += gibbs * sin(( float ) s * VST::TWO_PI * ( float ) t / numberOfSamples );
+                            sample += gibbs * sin(( float ) s * VST::TWO_PI * ( float ) t / tableSize );
                             tmp     = sample;
                             break;
 
                         case WaveForms::TRIANGLE:
-                            sample += sin(( float ) s * VST::TWO_PI * ( float ) t / numberOfSamples );
+                            sample += sin(( float ) s * VST::TWO_PI * ( float ) t / tableSize );
                             tmp     = 1.0 - ( float ) ( std::abs( sample - 0.5 )) * 4.0;
                             break;
 
                         case WaveForms::SAWTOOTH:
-                            sample += gibbs * ( 1.0 / ( float ) s ) * sin(( float ) s * VST::TWO_PI * ( float ) t / numberOfSamples );
+                            sample += gibbs * ( 1.0 / ( float ) s ) * sin(( float ) s * VST::TWO_PI * ( float ) t / tableSize );
                             tmp     = sample;
                             break;
 
                         case WaveForms::SQUARE:
-                            sample += sin(( float ) s * VST::TWO_PI * ( float ) t / numberOfSamples );
+                            sample += sin(( float ) s * VST::TWO_PI * ( float ) t / tableSize );
                             tmp     = ( sample >= 0.0 ) ? 1.0 : -1.0;
                             break;
                     }
                 }
                 outputBuffer[ t ] = tmp;
 
-                if ( tmp > maxValue )
+                if ( tmp > maxValue ) {
                     maxValue = tmp;
+                }
             }
             float factor = 1.0 / maxValue;
 
             // normalize values
-            for ( int j = 0; j < numberOfSamples; ++j )
+            for ( int j = 0; j < tableSize; ++j ) {
                 outputBuffer[ j ] *= factor;
+            }
         }
+        return waveTable;
     }
 }
 

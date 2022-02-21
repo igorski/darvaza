@@ -121,6 +121,8 @@ set(vst_sources
     src/wavegenerator.cpp
     src/wavetable.h
     src/wavetable.cpp
+    src/tablepool.h
+    src/tablepool.cpp
     src/ui/controller.h
     src/ui/controller.cpp
     src/ui/uimessagecontroller.h

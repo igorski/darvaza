@@ -44,7 +44,7 @@ namespace WaveGenerator
     // better to precache the WaveTables upon application start
     // (also see TablePool for maintaining the cache)
 
-    extern void generate( WaveTable* waveTable, int waveformType );
+    extern WaveTable* generate( int tableSize, WaveForms waveformType );
 }
 } // E.O namespace Igorski
 

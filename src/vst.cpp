@@ -380,9 +380,10 @@ tresult PLUGIN_API Darvaza::setupProcessing( ProcessSetup& newSetup )
 
     // spotted to fire multiple times...
 
-    if ( pluginProcess != nullptr )
+    if ( pluginProcess != nullptr ) {
         delete pluginProcess;
-
+    }
+    
     // TODO: creating a bunch of extra channels for no apparent reason?
     // get the correct channel amount and don't allocate more than necessary...
     pluginProcess = new PluginProcess( 6 );
