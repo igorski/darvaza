@@ -153,6 +153,24 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
     // according to docs: processing context (optional, but most welcome)
 
     if ( data.processContext != nullptr ) {
+        bool wasPlaying = isPlaying;
+
+        // when host starts sequencer, ensure the process read pointer and write pointers are reset
+        // and the gate waveforms are reset
+
+        isPlaying = data.processContext->state & ProcessContext::kPlaying;
+
+        if ( !wasPlaying && isPlaying ) {
+            pluginProcess->resetReadWritePointers();
+        }
+
+        // clear the record buffers on sequencer start / stop to prevent slowed down playback from
+        // reading old data that has been recorded into its "future"
+
+        if ( wasPlaying != isPlaying ) {
+            pluginProcess->clearRecordBuffer();
+        }
+
         pluginProcess->setTempo(
             data.processContext->tempo, data.processContext->timeSigNumerator, data.processContext->timeSigDenominator,
             fEvenSpeed, fOddSpeed

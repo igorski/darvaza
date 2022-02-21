@@ -87,6 +87,23 @@ void PluginProcess::setGateSpeed( float evenSteps, float oddSteps )
     }
 }
 
+void PluginProcess::resetReadWritePointers()
+{
+    _readPointer  = 0.f;
+    _writePointer = 0;
+
+    for ( int i = 0; i < _amountOfChannels; ++i ) {
+        _waveTables.at( i )->setAccumulator( 0 );
+    }
+}
+
+void PluginProcess::clearRecordBuffer()
+{
+    if ( _recordBuffer != nullptr ) {
+        _recordBuffer->silenceBuffers();
+    }
+}
+
 /* other */
 
 void PluginProcess::setTempo( double tempo, int32 timeSigNumerator, int32 timeSigDenominator, float evenSteps, float oddSteps )

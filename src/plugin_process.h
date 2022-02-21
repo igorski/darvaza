@@ -63,6 +63,9 @@ class PluginProcess {
         // resets gate envelope to 0 position (e.g. on sequencer stop/start)
         void syncGates();
 
+        void resetReadWritePointers();
+        void clearRecordBuffer();
+
         // child processors
 
         BitCrusher* bitCrusher;

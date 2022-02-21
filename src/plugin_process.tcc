@@ -77,9 +77,10 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
             inSample = channelInBuffer[ i ];
 
-            // apply the gate
+            // open / close the gate
+            // note we multiply by .5 and add .5 to make the LFO's bipolar waveform unipolar
 
-            SampleType gateLevel = ( SampleType ) table->peek();
+            SampleType gateLevel = ( SampleType ) table->peek() * .5f  + .5f;
 
             // write the mix buffer for the gate value
 

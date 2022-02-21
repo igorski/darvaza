@@ -99,6 +99,8 @@ class Darvaza : public AudioEffect
         int32 currentProcessMode;
         Igorski::PluginProcess* pluginProcess;
 
+        bool isPlaying = false;
+
         // synchronize the processors model with UI led changes
 
         void syncModel();
