@@ -27,6 +27,8 @@
 #include "audiobuffer.h"
 #include "bitcrusher.h"
 #include "limiter.h"
+#include "wavetable.h"
+#include <vector>
 
 using namespace Steinberg;
 
@@ -49,6 +51,7 @@ class PluginProcess {
 
         // setters
 
+        void setGateSpeed( float evenSpeed, float oddSpeed );
         void setDryMix( float value );
         void setWetMix( float value );
 
@@ -58,6 +61,8 @@ class PluginProcess {
         Limiter* limiter;
 
     private:
+        std::vector<WaveTable*> _waveTables;
+
         AudioBuffer* _recordBuffer; // buffer used to record incoming signal
         AudioBuffer* _preMixBuffer;  // buffer used for the pre effect mixing
 

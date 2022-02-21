@@ -33,7 +33,7 @@ WaveTable::WaveTable( int aTableLength, float aFrequency )
     _buffer      = generateSilentBuffer( tableLength );
     setFrequency( aFrequency );
 
-    SR_OVER_LENGTH = ( float ) VST::SAMPLE_RATE / ( float ) tableLength;
+    _sampleRateOverLength = ( float ) VST::SAMPLE_RATE / ( float ) tableLength;
 }
 
 WaveTable::~WaveTable()

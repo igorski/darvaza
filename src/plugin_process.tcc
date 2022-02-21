@@ -56,6 +56,8 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
         float* channelRecordBuffer   = _recordBuffer->getBufferForChannel( c );
         float* channelPreMixBuffer   = _preMixBuffer->getBufferForChannel( c );
 
+        WaveTable* table = _waveTables.at( c );
+
         // write input into the record and pre mix buffers (converting to float when necessary)
 
         for ( i = 0; i < bufferSize; ++i, ++writePointer ) {
@@ -65,25 +67,27 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
             float inSample = ( float ) channelInBuffer[ i ];
 
             channelRecordBuffer[ writePointer ] = inSample;
-            // TODO: blend with gate status
             channelPreMixBuffer[ i ] = inSample;
         }
 
-        // example processing: apply some bit crushing onto the premix buffer
+        // process the mix buffer
         bitCrusher->process( channelPreMixBuffer, bufferSize );
 
-        // mix the input and processed mix buffer into the output buffer
+        // apply gate and mix the input and processed mix buffer into the output buffer
 
         for ( i = 0; i < bufferSize; ++i ) {
 
             // before writing to the out buffer we take a snapshot of the current in sample
             // value as VST2 in Ableton Live supplies the same buffer for inBuffer and outBuffer!
+
             inSample = channelInBuffer[ i ];
 
-            // wet mix (e.g. the effected signal)
-            channelOutBuffer[ i ] = ( SampleType ) channelPreMixBuffer[ i ] * wetMix;
+            // apply the gate and wet mix (e.g. the effected signal)
+
+            channelOutBuffer[ i ] = ( SampleType ) ( channelPreMixBuffer[ i ] * table->peek() ) * wetMix;
 
             // dry mix (e.g. mix in the input signal)
+
             if ( mixDry ) {
                 channelOutBuffer[ i ] += ( inSample * dryMix );
             }

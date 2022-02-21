@@ -9,15 +9,15 @@ using namespace Steinberg;
 namespace Igorski {
 namespace VST {
 
-    static const int   ID       = 12345678;
+    static const int   ID       = 97151821;
     static const char* NAME     = "Darvaza";
     static const char* VENDOR   = "igorski.nl";
 
     // generate unique UIDs for these (www.uuidgenerator.net is great for this)
 
-    static const FUID PluginProcessorUID( 0xC6E40BB6, 0x717148FB, 0x92700948, 0x0C47f4E8 );
-    static const FUID PluginWithSideChainProcessorUID( 0x717148FB, 0x92700948, 0x0C47f4E8, 0xC6E40BB6 );
-    static const FUID PluginControllerUID( 0x92700948, 0x0C47f4E8, 0xC6E40BB6, 0x717148FB );
+    static const FUID PluginProcessorUID( 0x5F242E0B, 0x955D4A80, 0x85CF461F, 0xAAD2543F );
+    static const FUID PluginWithSideChainProcessorUID( 0x955D4A80, 0x85CF461F, 0xAAD2543F, 0x5F242E0B );
+    static const FUID PluginControllerUID( 0x85CF461F, 0xAAD2543F, 0x5F242E0B, 0x955D4A80 );
 
     extern float SAMPLE_RATE; // set upon initialization, see vst.cpp
 

@@ -78,26 +78,26 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
 
 // --- AUTO-GENERATED START
 
+    RangeParameter* oddSpeedParam = new RangeParameter(
+        USTRING( "Odd channel speed" ), kOddSpeedId, USTRING( "Hz" ),
+        0.f, 10.f, 0.f,
+        0, ParameterInfo::kCanAutomate, unitId
+    );
+    parameters.addParameter( oddSpeedParam );
+
+    RangeParameter* evenSpeedParam = new RangeParameter(
+        USTRING( "Even channel speed" ), kEvenSpeedId, USTRING( "Hz" ),
+        0.f, 10.f, 0.f,
+        0, ParameterInfo::kCanAutomate, unitId
+    );
+    parameters.addParameter( evenSpeedParam );
+
     RangeParameter* bitDepthParam = new RangeParameter(
-        USTRING( "Resolution" ), kBitDepthId, USTRING( "%" ),
+        USTRING( "Torture" ), kBitDepthId, USTRING( "%" ),
         0.f, 1.f, 1.f,
         0, ParameterInfo::kCanAutomate, unitId
     );
     parameters.addParameter( bitDepthParam );
-
-    RangeParameter* bitCrushLfoParam = new RangeParameter(
-        USTRING( "Bit crush LFO" ), kBitCrushLfoId, USTRING( "Hz" ),
-        0.f, 10.f, 0.f,
-        0, ParameterInfo::kCanAutomate, unitId
-    );
-    parameters.addParameter( bitCrushLfoParam );
-
-    RangeParameter* bitCrushLfoDepthParam = new RangeParameter(
-        USTRING( "Bit crush LFO depth" ), kBitCrushLfoDepthId, USTRING( "%" ),
-        0.f, 1.f, 0.f,
-        0, ParameterInfo::kCanAutomate, unitId
-    );
-    parameters.addParameter( bitCrushLfoDepthParam );
 
     RangeParameter* wetMixParam = new RangeParameter(
         USTRING( "Wet mix" ), kWetMixId, USTRING( "%" ),
@@ -137,16 +137,16 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
     {
 // --- AUTO-GENERATED SETSTATE START
 
+        float savedOddSpeed = 1.f;
+        if ( state->read( &savedOddSpeed, sizeof( float )) != kResultOk )
+            return kResultFalse;
+
+        float savedEvenSpeed = 1.f;
+        if ( state->read( &savedEvenSpeed, sizeof( float )) != kResultOk )
+            return kResultFalse;
+
         float savedBitDepth = 1.f;
         if ( state->read( &savedBitDepth, sizeof( float )) != kResultOk )
-            return kResultFalse;
-
-        float savedBitCrushLfo = 1.f;
-        if ( state->read( &savedBitCrushLfo, sizeof( float )) != kResultOk )
-            return kResultFalse;
-
-        float savedBitCrushLfoDepth = 1.f;
-        if ( state->read( &savedBitCrushLfoDepth, sizeof( float )) != kResultOk )
             return kResultFalse;
 
         float savedWetMix = 1.f;
@@ -162,9 +162,9 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
 #if BYTEORDER == kBigEndian
 
 // --- AUTO-GENERATED SETSTATE SWAP START
+    SWAP_32( savedOddSpeed )
+    SWAP_32( savedEvenSpeed )
     SWAP_32( savedBitDepth )
-    SWAP_32( savedBitCrushLfo )
-    SWAP_32( savedBitCrushLfoDepth )
     SWAP_32( savedWetMix )
     SWAP_32( savedDryMix )
 
@@ -172,9 +172,9 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
 
 #endif
 // --- AUTO-GENERATED SETSTATE SETPARAM START
+        setParamNormalized( kOddSpeedId, savedOddSpeed );
+        setParamNormalized( kEvenSpeedId, savedEvenSpeed );
         setParamNormalized( kBitDepthId, savedBitDepth );
-        setParamNormalized( kBitCrushLfoId, savedBitCrushLfo );
-        setParamNormalized( kBitCrushLfoDepthId, savedBitCrushLfoDepth );
         setParamNormalized( kWetMixId, savedWetMix );
         setParamNormalized( kDryMixId, savedDryMix );
 
@@ -283,18 +283,18 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
 
 // --- AUTO-GENERATED GETPARAM START
 
-        case kBitDepthId:
-            sprintf( text, "%.d Bits", ( int ) ( 15 * valueNormalized ) + 1 );
-            Steinberg::UString( string, 128 ).fromAscii( text );
-            return kResultTrue;
-
-        case kBitCrushLfoId:
+        case kOddSpeedId:
             sprintf( text, "%.2f Hz", normalizedParamToPlain( tag, valueNormalized ));
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
-        case kBitCrushLfoDepthId:
-            sprintf( text, "%.2d %%", ( int ) ( valueNormalized * 100.f ));
+        case kEvenSpeedId:
+            sprintf( text, "%.2f Hz", normalizedParamToPlain( tag, valueNormalized ));
+            Steinberg::UString( string, 128 ).fromAscii( text );
+            return kResultTrue;
+
+        case kBitDepthId:
+            sprintf( text, "%.d Bits", ( int ) ( 15 * valueNormalized ) + 1 );
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 

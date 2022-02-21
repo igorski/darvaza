@@ -36,6 +36,10 @@ PluginProcess::PluginProcess( int amountOfChannels ) {
 
     TablePool::setTable( WaveGenerator::generate( 512, WaveGenerator::WaveForms::SINE ), WaveGenerator::WaveForms::SINE );
 
+    for ( int i = 0; i < amountOfChannels; ++i ) {
+        _waveTables.push_back( TablePool::getTable( WaveGenerator::WaveForms::SINE )->clone() );
+    }
+
     // read / write variables
 
     _readPointer  = 0.f;
@@ -57,10 +61,21 @@ PluginProcess::~PluginProcess() {
     delete _preMixBuffer;
     delete _recordBuffer;
 
+    while ( _waveTables.size() > 0 ) {
+        delete _waveTables.at( 0 );
+        _waveTables.erase( _waveTables.begin() );
+    }
     TablePool::flush();
 }
 
 /* setters */
+
+void PluginProcess::setGateSpeed( float evenSpeed, float oddSpeed ) {
+    for ( int i = 0; i < _amountOfChannels; ++i ) {
+        // TODO : normalized to Hz
+        _waveTables.at( i )->setFrequency( i % 2 == 0 ? 0.5f : 5.f );
+    }
+}
 
 void PluginProcess::setDryMix( float value ) {
     _dryMix = value;

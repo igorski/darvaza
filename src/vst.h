@@ -88,9 +88,9 @@ class Darvaza : public AudioEffect
         // (normalized) RangeParameter values
 
 // --- AUTO-GENERATED START
-        float fBitDepth = 1.f;    // Resolution
-        float fBitCrushLfo = 0.f;    // Bit crush LFO
-        float fBitCrushLfoDepth = 0.f;    // Bit crush LFO depth
+        float fOddSpeed = 0.f;    // Odd channel speed
+        float fEvenSpeed = 0.f;    // Even channel speed
+        float fBitDepth = 1.f;    // Torture
         float fWetMix = 1.f;    // Wet mix
         float fDryMix = 0.f;    // Dry mix
 

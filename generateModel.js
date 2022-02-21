@@ -28,28 +28,30 @@
 // }
 const MODEL = [
     {
-        name: 'bitDepth',
-        descr: 'Resolution',
-        unitDescr: '%',
-        value: { min: '0.f', max: '1.f', def: '1.f', type: 'percent' },
-        ui: { x: 199, y: 165, w: 104, h: 21 },
-        // note we treat full resolution as 16-bits (but is in fact whatever host is)
-        customDescr: 'sprintf( text, "%.d Bits", ( int ) ( 15 * valueNormalized ) + 1 );'
-    },
-    {
-        name: 'bitCrushLfo',
-        descr: 'Bit crush LFO',
+        name: 'oddSpeed',
+        descr: 'Odd channel speed',
         unitDescr: 'Hz',
         value: { min: '0.f', max: '10.f' },
-        ui: { x: 10, y: 90, w: 134, h: 21 },
+        ui: { x: 199, y: 165, w: 104, h: 21 },
         normalizedDescr: true
     },
     {
-        name: 'bitCrushLfoDepth',
-        descr: 'Bit crush LFO depth',
+        name: 'evenSpeed',
+        descr: 'Even channel speed',
+        unitDescr: 'Hz',
+        value: { min: '0.f', max: '10.f' },
+        ui: { x: 249, y: 165, w: 104, h: 21 },
+        normalizedDescr: true
+    },
+
+    {
+        name: 'bitDepth',
+        descr: 'Torture',
         unitDescr: '%',
-        value: { min: '0.f', max: '1.f', type: 'percent' },
-        ui: { x: 10, y: 120, w: 134, h: 21 }
+        value: { min: '0.f', max: '1.f', def: '1.f', type: 'percent' },
+        ui: { x: 299, y: 165, w: 104, h: 21 },
+        // note we treat full resolution as 16-bits (but is in fact whatever host is)
+        customDescr: 'sprintf( text, "%.d Bits", ( int ) ( 15 * valueNormalized ) + 1 );'
     },
     {
         name: 'wetMix',
@@ -62,7 +64,7 @@ const MODEL = [
         name: 'dryMix',
         descr: 'Dry mix',
         unitDescr: '%',
-        value: { min: '0.f', max: '1.f', type: 'percent' },
+        value: { min: '0.f', max: '1.f', def: '0.f', type: 'percent' },
         ui: { x: 10, y: 180, w: 134, h: 21 }
     }
 ];

@@ -54,7 +54,7 @@ class WaveTable
         inline float peek()
         {
             // the wave table offset to read from
-            int readOffset = ( _accumulator == 0 ) ? 0 : ( int ) ( _accumulator / SR_OVER_LENGTH );
+            int readOffset = ( _accumulator == 0 ) ? 0 : ( int ) ( _accumulator / _sampleRateOverLength );
 
             // increment the accumulators read offset
             _accumulator += _frequency;
@@ -73,8 +73,8 @@ class WaveTable
     protected:
         float* _buffer;       // cached buffer (is a wave table)
         float _accumulator;   // is read offset in wave table buffer
-        float SR_OVER_LENGTH;
-        float       _frequency;     // frequency (in Hz) of waveform cycle when reading
+        float _frequency;     // frequency (in Hz) of waveform cycle when reading
+        float _sampleRateOverLength;
 
         float* generateSilentBuffer( int bufferSize );
 };

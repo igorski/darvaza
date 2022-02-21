@@ -128,19 +128,19 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
                 {
 // --- AUTO-GENERATED PROCESS START
 
+                    case kOddSpeedId:
+                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
+                            fOddSpeed = ( float ) value;
+                        break;
+
+                    case kEvenSpeedId:
+                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
+                            fEvenSpeed = ( float ) value;
+                        break;
+
                     case kBitDepthId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
                             fBitDepth = ( float ) value;
-                        break;
-
-                    case kBitCrushLfoId:
-                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fBitCrushLfo = ( float ) value;
-                        break;
-
-                    case kBitCrushLfoDepthId:
-                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fBitCrushLfoDepth = ( float ) value;
                         break;
 
                     case kWetMixId:
@@ -249,16 +249,16 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
 
 // --- AUTO-GENERATED SETSTATE START
 
+    float savedOddSpeed = 0.f;
+    if ( state->read( &savedOddSpeed, sizeof ( float )) != kResultOk )
+        return kResultFalse;
+
+    float savedEvenSpeed = 0.f;
+    if ( state->read( &savedEvenSpeed, sizeof ( float )) != kResultOk )
+        return kResultFalse;
+
     float savedBitDepth = 0.f;
     if ( state->read( &savedBitDepth, sizeof ( float )) != kResultOk )
-        return kResultFalse;
-
-    float savedBitCrushLfo = 0.f;
-    if ( state->read( &savedBitCrushLfo, sizeof ( float )) != kResultOk )
-        return kResultFalse;
-
-    float savedBitCrushLfoDepth = 0.f;
-    if ( state->read( &savedBitCrushLfoDepth, sizeof ( float )) != kResultOk )
         return kResultFalse;
 
     float savedWetMix = 0.f;
@@ -274,9 +274,9 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
 #if BYTEORDER == kBigEndian
 
 // --- AUTO-GENERATED SETSTATE SWAP START
+   SWAP_32( savedOddSpeed )
+   SWAP_32( savedEvenSpeed )
    SWAP_32( savedBitDepth )
-   SWAP_32( savedBitCrushLfo )
-   SWAP_32( savedBitCrushLfoDepth )
    SWAP_32( savedWetMix )
    SWAP_32( savedDryMix )
 
@@ -285,9 +285,9 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
 #endif
 
 // --- AUTO-GENERATED SETSTATE APPLY START
+    fOddSpeed = savedOddSpeed;
+    fEvenSpeed = savedEvenSpeed;
     fBitDepth = savedBitDepth;
-    fBitCrushLfo = savedBitCrushLfo;
-    fBitCrushLfoDepth = savedBitCrushLfoDepth;
     fWetMix = savedWetMix;
     fDryMix = savedDryMix;
 
@@ -334,9 +334,9 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
     // here we save the model values
 
 // --- AUTO-GENERATED GETSTATE START
+    float toSaveOddSpeed = fOddSpeed;
+    float toSaveEvenSpeed = fEvenSpeed;
     float toSaveBitDepth = fBitDepth;
-    float toSaveBitCrushLfo = fBitCrushLfo;
-    float toSaveBitCrushLfoDepth = fBitCrushLfoDepth;
     float toSaveWetMix = fWetMix;
     float toSaveDryMix = fDryMix;
 
@@ -346,9 +346,9 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
 #if BYTEORDER == kBigEndian
 
 // --- AUTO-GENERATED GETSTATE SWAP START
+   SWAP_32( toSaveOddSpeed )
+   SWAP_32( toSaveEvenSpeed )
    SWAP_32( toSaveBitDepth )
-   SWAP_32( toSaveBitCrushLfo )
-   SWAP_32( toSaveBitCrushLfoDepth )
    SWAP_32( toSaveWetMix )
    SWAP_32( toSaveDryMix )
 
@@ -357,9 +357,9 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
 #endif
 
 // --- AUTO-GENERATED GETSTATE APPLY START
+    state->write( &toSaveOddSpeed, sizeof( float ));
+    state->write( &toSaveEvenSpeed, sizeof( float ));
     state->write( &toSaveBitDepth, sizeof( float ));
-    state->write( &toSaveBitCrushLfo, sizeof( float ));
-    state->write( &toSaveBitCrushLfoDepth, sizeof( float ));
     state->write( &toSaveWetMix, sizeof( float ));
     state->write( &toSaveDryMix, sizeof( float ));
 
@@ -383,7 +383,7 @@ tresult PLUGIN_API Darvaza::setupProcessing( ProcessSetup& newSetup )
     if ( pluginProcess != nullptr ) {
         delete pluginProcess;
     }
-    
+
     // TODO: creating a bunch of extra channels for no apparent reason?
     // get the correct channel amount and don't allocate more than necessary...
     pluginProcess = new PluginProcess( 6 );
@@ -489,8 +489,8 @@ void Darvaza::syncModel()
 {
     // forward the protected model values onto the plugin process and related processors
     // NOTE: when dealing with "bool"-types, use Calc::toBool() to determine on/off
+    pluginProcess->setGateSpeed( fEvenSpeed, fOddSpeed );
     pluginProcess->bitCrusher->setAmount( fBitDepth );
-    pluginProcess->bitCrusher->setLFO( fBitCrushLfo, fBitCrushLfoDepth );
     // output mix
     pluginProcess->setDryMix( fDryMix );
     pluginProcess->setWetMix( fWetMix );
