@@ -33,6 +33,9 @@ using namespace Steinberg;
 namespace Igorski {
 class PluginProcess {
 
+    static constexpr float MAX_RECORD_SECONDS = 30.f;
+    static constexpr float MIN_PLAYBACK_SPEED = .5f;
+
     public:
         PluginProcess( int amountOfChannels );
         ~PluginProcess();
@@ -55,16 +58,22 @@ class PluginProcess {
         Limiter* limiter;
 
     private:
+        AudioBuffer* _recordBuffer; // buffer used to record incoming signal
         AudioBuffer* _preMixBuffer;  // buffer used for the pre effect mixing
-        AudioBuffer* _postMixBuffer; // buffer used for the post effect mixing
+
+        // read/write pointers for the record buffer used for record and playback
+
+        float _readPointer;
+        int _writePointer;
+        int _maxRecordBufferSize;
 
         float _dryMix;
         float _wetMix;
         int _amountOfChannels;
 
         // ensures the pre- and post mix buffers match the appropriate amount of channels
-        // and buffer size. this also clones the contents of given in buffer into the pre-mix buffer
-        // the buffers are pooled so this can be called upon each process cycle without allocation overhead
+        // and buffer size. the buffers are pooled so this can be called upon each process
+        // cycle without allocation overhead
 
         template <typename SampleType>
         void prepareMixBuffers( SampleType** inBuffer, int numInChannels, int bufferSize );

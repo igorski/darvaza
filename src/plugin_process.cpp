@@ -36,21 +36,26 @@ PluginProcess::PluginProcess( int amountOfChannels ) {
 
     TablePool::setTable( WaveGenerator::generate( 512, WaveGenerator::WaveForms::SINE ), WaveGenerator::WaveForms::SINE );
 
+    // read / write variables
+
+    _readPointer  = 0.f;
+    _writePointer = 0;
+
     // create the child processors
 
     bitCrusher = new BitCrusher( 8, .5f, .5f );
     limiter    = new Limiter( 10.f, 500.f, .6f );
 
     // will be lazily created in the process function
-    _preMixBuffer  = nullptr;
-    _postMixBuffer = nullptr;
+    _recordBuffer = nullptr;
+    _preMixBuffer = nullptr;
 }
 
 PluginProcess::~PluginProcess() {
     delete bitCrusher;
     delete limiter;
-    delete _postMixBuffer;
     delete _preMixBuffer;
+    delete _recordBuffer;
 
     TablePool::flush();
 }

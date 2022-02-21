@@ -20,6 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+#include "calc.h"
+
 namespace Igorski
 {
 template <typename SampleType>
@@ -38,27 +40,39 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
     SampleType dryMix = ( SampleType ) _dryMix;
     SampleType wetMix = ( SampleType ) _wetMix;
 
+    float readPointer;
+    int writePointer;
+    int recordMax = _maxRecordBufferSize - 1;
+
     prepareMixBuffers( inBuffer, numInChannels, bufferSize );
 
     for ( int32 c = 0; c < numInChannels; ++c )
     {
+        readPointer  = _readPointer;
+        writePointer = _writePointer;
+
         SampleType* channelInBuffer  = inBuffer[ c ];
         SampleType* channelOutBuffer = outBuffer[ c ];
+        float* channelRecordBuffer   = _recordBuffer->getBufferForChannel( c );
         float* channelPreMixBuffer   = _preMixBuffer->getBufferForChannel( c );
-        float* channelPostMixBuffer  = _postMixBuffer->getBufferForChannel( c );
+
+        // write input into the record and pre mix buffers (converting to float when necessary)
+
+        for ( i = 0; i < bufferSize; ++i, ++writePointer ) {
+            if ( writePointer > recordMax ) {
+                writePointer = 0;
+            }
+            float inSample = ( float ) channelInBuffer[ i ];
+
+            channelRecordBuffer[ writePointer ] = inSample;
+            // TODO: blend with gate status
+            channelPreMixBuffer[ i ] = inSample;
+        }
 
         // example processing: apply some bit crushing onto the premix buffer
         bitCrusher->process( channelPreMixBuffer, bufferSize );
 
-        // POST MIX processing
-        // apply the post mix effect processing
-
-        // this is just cloning the pre mix buffer so we can hear output in this example
-        for ( i = 0; i < bufferSize; ++i ) {
-            channelPostMixBuffer[ i ] = ( float ) channelPreMixBuffer[ i ];
-        }
-
-        // mix the input and processed post mix buffers into the output buffer
+        // mix the input and processed mix buffer into the output buffer
 
         for ( i = 0; i < bufferSize; ++i ) {
 
@@ -67,7 +81,7 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
             inSample = channelInBuffer[ i ];
 
             // wet mix (e.g. the effected signal)
-            channelOutBuffer[ i ] = ( SampleType ) channelPostMixBuffer[ i ] * wetMix;
+            channelOutBuffer[ i ] = ( SampleType ) channelPreMixBuffer[ i ] * wetMix;
 
             // dry mix (e.g. mix in the input signal)
             if ( mixDry ) {
@@ -75,6 +89,9 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
             }
         }
     }
+    // update read/write indices
+    _readPointer  = readPointer;
+    _writePointer = writePointer;
 
     // limit the output signal in case its gets hot
     //limiter->process<SampleType>( outBuffer, bufferSize, numOutChannels );
@@ -83,33 +100,24 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 template <typename SampleType>
 void PluginProcess::prepareMixBuffers( SampleType** inBuffer, int numInChannels, int bufferSize )
 {
+    // if the record buffer wasn't created yet or the buffer size has changed
+    // delete existing buffer and create new one to match properties
+
+    int idealRecordSize = Calc::secondsToBuffer( MAX_RECORD_SECONDS );
+    int recordSize      = idealRecordSize + idealRecordSize % bufferSize;
+
+    if ( _recordBuffer == nullptr || _recordBuffer->bufferSize != recordSize ) {
+        delete _recordBuffer;
+        _recordBuffer = new AudioBuffer( numInChannels, recordSize );
+        _maxRecordBufferSize = recordSize;
+    }
+
     // if the pre mix buffer wasn't created yet or the buffer size has changed
     // delete existing buffer and create new one to match properties
 
     if ( _preMixBuffer == nullptr || _preMixBuffer->bufferSize != bufferSize ) {
         delete _preMixBuffer;
         _preMixBuffer = new AudioBuffer( numInChannels, bufferSize );
-    }
-
-    // clone the in buffer contents
-    // note the clone is always cast to float as it is
-    // used for internal processing (see PluginProcess::process)
-
-    for ( int c = 0; c < numInChannels; ++c ) {
-        SampleType* inChannelBuffer = ( SampleType* ) inBuffer[ c ];
-        float* outChannelBuffer     =  _preMixBuffer->getBufferForChannel( c );
-
-        for ( int i = 0; i < bufferSize; ++i ) {
-            outChannelBuffer[ i ] = ( float ) inChannelBuffer[ i ];
-        }
-    }
-
-    // if the post mix buffer wasn't created yet or the buffer size has changed
-    // delete existing buffer and create new one to match properties
-
-    if ( _postMixBuffer == nullptr || _postMixBuffer->bufferSize != bufferSize ) {
-        delete _postMixBuffer;
-        _postMixBuffer = new AudioBuffer( numInChannels, bufferSize );
     }
 }
 
