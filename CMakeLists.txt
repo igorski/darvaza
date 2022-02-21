@@ -102,10 +102,14 @@ set(vst2_sources
 
 set(vst_sources
     src/global.h
+    src/allpass.h
+    src/allpass.cpp
     src/audiobuffer.h
     src/audiobuffer.cpp
     src/bitcrusher.h
     src/bitcrusher.cpp
+    src/comb.h
+    src/comb.cpp
     src/lfo.h
     src/lfo.cpp
     src/limiter.h
@@ -113,6 +117,8 @@ set(vst_sources
     src/paramids.h
     src/plugin_process.h
     src/plugin_process.cpp
+    src/reverb.h
+    src/reverb.cpp
     src/vst.h
     src/vst.cpp
     src/vstentry.cpp

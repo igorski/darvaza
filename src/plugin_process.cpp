@@ -55,6 +55,7 @@ PluginProcess::PluginProcess( int amountOfChannels ) {
 
     bitCrusher = new BitCrusher( 8, .5f, .5f );
     limiter    = new Limiter( 10.f, 500.f, .6f );
+    reverb     = new Reverb();
 
     // will be lazily created in the process function
     _recordBuffer = nullptr;
@@ -64,6 +65,8 @@ PluginProcess::PluginProcess( int amountOfChannels ) {
 PluginProcess::~PluginProcess() {
     delete bitCrusher;
     delete limiter;
+    delete reverb;
+    
     delete _preMixBuffer;
     delete _recordBuffer;
 

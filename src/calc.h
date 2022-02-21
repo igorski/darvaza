@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Igor Zinken - https://www.igorski.nl
+ * Copyright (c) 2020-2022 Igor Zinken - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -26,6 +26,10 @@
 #include <cmath>
 #include <algorithm>
 #include "global.h"
+
+// internally we handle all audio as 32-bit floats (hence 0x7f800000)
+// this methods is used by comb and allpass
+#define undenormalise(sample) ((((*(uint32 *)&(sample))&0x7f800000)==0)&&((sample)!=0.f))
 
 /**
  * convenience utilities to process values

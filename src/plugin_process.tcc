@@ -66,7 +66,9 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
         }
 
         // process the mix buffer
+        // TODO : only run these processes depending on certain plugin states
         bitCrusher->process( channelPreMixBuffer, bufferSize );
+        reverb->process( channelPreMixBuffer, bufferSize );
 
         // apply gate and mix the input and processed mix buffer into the output buffer
 
@@ -80,7 +82,7 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
             // open / close the gate
             // note we multiply by .5 and add .5 to make the LFO's bipolar waveform unipolar
 
-            SampleType gateLevel = ( SampleType ) table->peek() * .5f  + .5f;
+            SampleType gateLevel = ( SampleType ) ( table->peek() * .5f + .5f );
 
             // write the mix buffer for the gate value
 

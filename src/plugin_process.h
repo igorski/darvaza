@@ -20,13 +20,14 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#ifndef __PluginProcess__H_INCLUDED__
-#define __PluginProcess__H_INCLUDED__
+#ifndef __PLUGIN_PROCESS__H_INCLUDED__
+#define __PLUGIN_PROCESS__H_INCLUDED__
 
 #include "global.h"
 #include "audiobuffer.h"
 #include "bitcrusher.h"
 #include "limiter.h"
+#include "reverb.h"
 #include "wavetable.h"
 #include <vector>
 
@@ -70,6 +71,7 @@ class PluginProcess {
 
         BitCrusher* bitCrusher;
         Limiter* limiter;
+        Reverb* reverb;
 
     private:
         std::vector<WaveTable*> _waveTables;
