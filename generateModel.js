@@ -26,6 +26,22 @@
 //     normalizedDescr: Boolean, // optional, whether to display the value in the host normalized (otherwise falls back to 0 - 1 range), defaults to false
 //     customDescr: String,      // optional, custom instruction used in controller.cpp to format value
 // }
+const gateSubdivisionFormatFn = `
+            tmpValue = Igorski::Calc::gateSubdivision( valueNormalized );
+            if ( tmpValue <= 0.5f ) {
+                sprintf( text, "%.d measures", ( int ) ( 1.f / tmpValue ));
+            } else if ( tmpValue == 1.f ) {
+                sprintf( text, "1 measure" );
+            } else if ( tmpValue == 4.f ) {
+                sprintf( text, "quarter note" );
+            } else if ( tmpValue == 8.f ) {
+                sprintf( text, "%.fth note", tmpValue );
+            } else if ( tmpValue == 16.f ) {
+                sprintf( text, "%.fth note", tmpValue );
+            } else {
+                sprintf( text, "1/%.f measure", tmpValue );
+            }`;
+
 const MODEL = [
     // gate speeds are normalized 0 - 1 range values that translate to a 1 to 32 range (measure subdivisions)
     {
@@ -34,7 +50,7 @@ const MODEL = [
         unitDescr: 'steps',
         value: { min: '0.f', max: '1.f', def: '0.f', type: 'percent' },
         ui: { x: 199, y: 165, w: 104, h: 21 },
-        customDescr: 'sprintf( text, "%.d steps", ( int ) ( 31 * valueNormalized ) + 1 );'
+        customDescr: gateSubdivisionFormatFn,
     },
     {
         name: 'evenSpeed',
@@ -42,7 +58,7 @@ const MODEL = [
         unitDescr: 'steps',
         value: { min: '0.f', max: '1.f', def: '0.f', type: 'percent' },
         ui: { x: 249, y: 165, w: 104, h: 21 },
-        customDescr: 'sprintf( text, "%.d steps", ( int ) ( 31 * valueNormalized ) + 1 );'
+        customDescr: gateSubdivisionFormatFn,
     },
     {
         name: 'bitDepth',

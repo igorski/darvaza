@@ -99,6 +99,25 @@ namespace Calc {
     {
         return value >= .5;
     }
+
+    // converts the normalized 0 - 1 value for the gate
+    // into musical subdivisions from 4 measures, 2 measures, 1 measure
+    // and individual (num / measure) down to a 16th note in duration
+
+    inline float gateSubdivision( float value )
+    {
+        int scaled = ( int ) round(( 18.f * value ) + 1.f );
+        switch ( scaled ) {
+            case 1:
+                return 0.25f;
+            case 2:
+                return 0.5f;
+            case 3:
+                return 1;
+            default:
+                return -round( 1.f / 16.f - (( float ) scaled - 3.f ));
+        }
+    }
 }
 }
 

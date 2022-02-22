@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #include "../global.h"
+#include "../calc.h"
 #include "../plugin_process.h"
 #include "../paramids.h"
 #include "controller.h"
@@ -300,6 +301,7 @@ tresult PLUGIN_API PluginController::setParamNormalized( ParamID tag, ParamValue
 tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamValue valueNormalized, String128 string )
 {
     char text[32];
+    float tmpValue;
     // these controls are floating point values in 0 - 1 range, we can
     // simply read the normalized value which is in the same range
     switch ( tag )
@@ -308,12 +310,40 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
 // --- AUTO-GENERATED GETPARAM START
 
         case kOddSpeedId:
-            sprintf( text, "%.d steps", ( int ) ( 31 * valueNormalized ) + 1 );
+            
+            tmpValue = Igorski::Calc::gateSubdivision( valueNormalized );
+            if ( tmpValue <= 0.5f ) {
+                sprintf( text, "%.d measures", ( int ) ( 1.f / tmpValue ));
+            } else if ( tmpValue == 1.f ) {
+                sprintf( text, "1 measure" );
+            } else if ( tmpValue == 4.f ) {
+                sprintf( text, "quarter note" );
+            } else if ( tmpValue == 8.f ) {
+                sprintf( text, "%.fth note", tmpValue );
+            } else if ( tmpValue == 16.f ) {
+                sprintf( text, "%.fth note", tmpValue );
+            } else {
+                sprintf( text, "1/%.f measure", tmpValue );
+            }
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
         case kEvenSpeedId:
-            sprintf( text, "%.d steps", ( int ) ( 31 * valueNormalized ) + 1 );
+            
+            tmpValue = Igorski::Calc::gateSubdivision( valueNormalized );
+            if ( tmpValue <= 0.5f ) {
+                sprintf( text, "%.d measures", ( int ) ( 1.f / tmpValue ));
+            } else if ( tmpValue == 1.f ) {
+                sprintf( text, "1 measure" );
+            } else if ( tmpValue == 4.f ) {
+                sprintf( text, "quarter note" );
+            } else if ( tmpValue == 8.f ) {
+                sprintf( text, "%.fth note", tmpValue );
+            } else if ( tmpValue == 16.f ) {
+                sprintf( text, "%.fth note", tmpValue );
+            } else {
+                sprintf( text, "1/%.f measure", tmpValue );
+            }
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 

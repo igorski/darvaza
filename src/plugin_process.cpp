@@ -102,9 +102,9 @@ PluginProcess::~PluginProcess() {
 
 void PluginProcess::setGateSpeed( float evenSteps, float oddSteps )
 {
-    // 1.f / value converts seconds to cycles in Hertz
-    float evenValue = 1.f / ( _fullMeasureDuration / (( 31.f * evenSteps ) + 1.f ));
-    float oddValue  = 1.f / ( _fullMeasureDuration / (( 31.f * oddSteps )  + 1.f ));
+    // (1.f / measureDuration value) converts seconds to cycles in Hertz
+    float evenValue = 1.f / ( _fullMeasureDuration / Calc::gateSubdivision( evenSteps ));
+    float oddValue  = 1.f / ( _fullMeasureDuration / Calc::gateSubdivision( oddSteps ));
 
     for ( size_t i = 0; i < _amountOfChannels; ++i ) {
         _waveTables.at( i )->setFrequency(( i + 1 ) % 2 == 0 ? evenValue : oddValue );
