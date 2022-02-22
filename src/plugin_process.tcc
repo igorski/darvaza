@@ -32,12 +32,13 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
     // by the templates SampleType value. Internally we process
     // audio as floats
 
-    SampleType inSample;
+    SampleType inSample, outSample;
     int i, readIndex;
 
     float readPointer;
     int writePointer;
     int recordMax = _maxRecordBufferSize - 1;
+    int writtenSamples;
 
     prepareMixBuffers( inBuffer, numInChannels, bufferSize );
 
@@ -53,6 +54,8 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
         WaveTable* table = _waveTables.at( c );
 
+        writtenSamples = _writtenMeasureSamples;
+
         // write input into the record and pre mix buffers (converting to float when necessary)
 
         for ( i = 0; i < bufferSize; ++i, ++writePointer ) {
@@ -65,19 +68,37 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
             channelPreMixBuffer[ i ] = inSample;
         }
 
-        // process the mix buffer
-        // TODO : only run these processes depending on certain plugin states
+        // run the pre mix effects that require no sample accurate property updates
+
         bitCrusher->process( channelPreMixBuffer, bufferSize );
-        reverb->process( channelPreMixBuffer, bufferSize );
 
         // apply gate and mix the input and processed mix buffer into the output buffer
 
         for ( i = 0; i < bufferSize; ++i ) {
 
+            // increment the written sample amount to keep track of key positions
+            // within the current measure to align the gates to
+
+            if ( ++writtenSamples >= _fullMeasureSamples ) {
+                _fullMeasureSamples = 0; // new measure
+            }
+
+            // run sample accurate property updates
+
+            if ( writtenSamples % _beatSamples == 0 ) {
+                // a beat has passed
+                //setGateSpeed( writtenSamples == 0 ? 0.5f : 0.1f, writtenSamples == 0 ? 0.5f : 0.1f );
+                reverb->toggleFreeze();
+            }
+
             // before writing to the out buffer we take a snapshot of the current in sample
             // value as VST2 in Ableton Live supplies the same buffer for inBuffer and outBuffer!
 
             inSample = channelInBuffer[ i ];
+
+            // run the pre mix effects that require sample accurate property updates
+
+            outSample = reverb->processSingle( channelPreMixBuffer[ i ] );
 
             // open / close the gate
             // note we multiply by .5 and add .5 to make the LFO's bipolar waveform unipolar
@@ -86,7 +107,7 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
             // write the mix buffer for the gate value
 
-            channelOutBuffer[ i ] = ( SampleType ) ( channelPreMixBuffer[ i ] ) * gateLevel;
+            channelOutBuffer[ i ] = ( SampleType ) ( outSample ) * gateLevel;
 
             // dry mix (e.g. mix in the input signal on the negative gate)
 
@@ -96,6 +117,8 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
     // update read/write indices
     _readPointer  = readPointer;
     _writePointer = writePointer;
+
+    _writtenMeasureSamples = writtenSamples;
 
     // limit the output signal in case its gets hot
     //limiter->process<SampleType>( outBuffer, bufferSize, numOutChannels );

@@ -77,15 +77,19 @@ class PluginProcess {
         std::vector<WaveTable*> _waveTables;
 
         AudioBuffer* _recordBuffer; // buffer used to record incoming signal
-        AudioBuffer* _preMixBuffer;  // buffer used for the pre effect mixing
+        AudioBuffer* _preMixBuffer; // buffer used for the pre effect mixing
 
         // read/write pointers for the record buffer used for record and playback
 
-        float _readPointer;
-        int _writePointer;
-        int _maxRecordBufferSize;
+        float _readPointer       = 0.f;
+        int _writePointer        = 0;
+        int _maxRecordBufferSize = 0;
 
         int _amountOfChannels;
+        int _writtenMeasureSamples = 0;
+        int _fullMeasureSamples    = 0;
+        int _beatSamples           = 0;
+        int _sixteenthSamples      = 0;
 
         double _tempo;
         int32 _timeSigNumerator;

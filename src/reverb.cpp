@@ -46,40 +46,10 @@ Reverb::~Reverb() {
 
 void Reverb::process( float* inBuffer, int bufferSize )
 {
-    float inSample;
-    float frac, s1, s2;
-    int i, t, t2, readIndex, channelDelayBufferChannel;
-
     // REVERB processing applied onto the temp buffer
 
-    float inputSample, processedSample;
-
-    for ( i = 0; i < bufferSize; ++i )
-    {
-        inputSample = inBuffer[ i ];
-
-        // ---- REVERB process
-
-        processedSample = 0;
-        inputSample *= _gain;
-
-        // accumulate comb filters in parallel
-
-        for ( int i = 0; i < VST::NUM_COMBS; i++ ) {
-            processedSample += _combFilter->filters.at( i )->process( inputSample );
-        }
-
-        // feed through all pass filters in series
-
-        for ( int i = 0; i < VST::NUM_ALLPASSES; i++ ) {
-            processedSample = _allpassFilter->filters.at( i )->process( processedSample );
-        }
-
-        // wet mix (e.g. the reverberated signal)
-        inBuffer[ i ] = ( float ) processedSample * _wet1;
-
-        // dry mix (e.g. mix in the input signal)
-        inBuffer[ i ] += ( inputSample * _dry );
+    for ( size_t i = 0; i < bufferSize; ++i ) {
+        inBuffer[ i ] = processSingle( inBuffer[ i ]);
     }
 }
 
@@ -161,6 +131,11 @@ void Reverb::setMode( float value )
 {
     _mode = value;
     update();
+}
+
+void Reverb::toggleFreeze()
+{
+    setMode( getMode() == 1 ? INITIAL_MODE : FREEZE_MODE );
 }
 
 void Reverb::setupFilters()

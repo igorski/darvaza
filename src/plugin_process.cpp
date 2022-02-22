@@ -40,11 +40,6 @@ PluginProcess::PluginProcess( int amountOfChannels ) {
         _waveTables.push_back( TablePool::getTable( waveForm )->clone() );
     }
 
-    // read / write variables
-
-    _readPointer  = 0.f;
-    _writePointer = 0;
-
     // these will be synced to host, see vst.cpp. here we default to 120 BPM in 4/4 time
     _tempo               = 120.f;
     _fullMeasureDuration = 2.f;
@@ -66,7 +61,7 @@ PluginProcess::~PluginProcess() {
     delete bitCrusher;
     delete limiter;
     delete reverb;
-    
+
     delete _preMixBuffer;
     delete _recordBuffer;
 
@@ -116,6 +111,9 @@ void PluginProcess::setTempo( double tempo, int32 timeSigNumerator, int32 timeSi
     }
 
     _fullMeasureDuration = ( 60.f / _tempo ) * _timeSigDenominator; // seconds per measure
+    _fullMeasureSamples  = Calc::secondsToBuffer( _fullMeasureDuration );
+    _beatSamples         = ceil( _fullMeasureSamples / _timeSigDenominator );
+    _sixteenthSamples    = ceil( _fullMeasureSamples / 16 );
 
     _timeSigNumerator   = timeSigNumerator;
     _timeSigDenominator = timeSigDenominator;

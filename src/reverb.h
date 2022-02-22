@@ -91,6 +91,29 @@ class Reverb {
 
         void process( float* inBuffer, int bufferSize );
 
+        inline float processSingle( float inputSample ) {
+
+            // ---- REVERB process
+
+            float processedSample = 0;
+            inputSample *= _gain;
+
+            // accumulate comb filters in parallel
+
+            for ( int i = 0; i < VST::NUM_COMBS; i++ ) {
+                processedSample += _combFilter->filters.at( i )->process( inputSample );
+            }
+
+            // feed through all pass filters in series
+
+            for ( int i = 0; i < VST::NUM_ALLPASSES; i++ ) {
+                processedSample = _allpassFilter->filters.at( i )->process( processedSample );
+            }
+
+            // wet mix (e.g. the reverberated signal) and dry mix (e.g. mix in the input signal)
+            return ( processedSample * _wet1 ) + ( inputSample * _dry );
+        }
+
         void mute();
         void setRoomSize( float value );
         float getRoomSize();
@@ -104,6 +127,7 @@ class Reverb {
         void setWidth( float value );
         float getMode();
         void setMode( float value );
+        void toggleFreeze();
 
     private:
         int  _amountOfChannels;
