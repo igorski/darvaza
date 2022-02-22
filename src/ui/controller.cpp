@@ -99,6 +99,20 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
     );
     parameters.addParameter( bitDepthParam );
 
+    RangeParameter* waveformParam = new RangeParameter(
+        USTRING( "Door" ), kWaveformId, USTRING( "%" ),
+        0.f, 1.f, 1.f,
+        0, ParameterInfo::kCanAutomate, unitId
+    );
+    parameters.addParameter( waveformParam );
+
+    RangeParameter* typeParam = new RangeParameter(
+        USTRING( "Evil" ), kTypeId, USTRING( "%" ),
+        0.f, 1.f, 1.f,
+        0, ParameterInfo::kCanAutomate, unitId
+    );
+    parameters.addParameter( typeParam );
+
 // --- AUTO-GENERATED END
 
     // initialization
@@ -135,6 +149,14 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         if ( state->read( &savedBitDepth, sizeof( float )) != kResultOk )
             return kResultFalse;
 
+        float savedWaveform = 1.f;
+        if ( state->read( &savedWaveform, sizeof( float )) != kResultOk )
+            return kResultFalse;
+
+        float savedType = 1.f;
+        if ( state->read( &savedType, sizeof( float )) != kResultOk )
+            return kResultFalse;
+
 // --- AUTO-GENERATED SETSTATE END
 
 #if BYTEORDER == kBigEndian
@@ -143,6 +165,8 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
     SWAP_32( savedOddSpeed )
     SWAP_32( savedEvenSpeed )
     SWAP_32( savedBitDepth )
+    SWAP_32( savedWaveform )
+    SWAP_32( savedType )
 
 // --- AUTO-GENERATED SETSTATE SWAP END
 
@@ -151,6 +175,8 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         setParamNormalized( kOddSpeedId, savedOddSpeed );
         setParamNormalized( kEvenSpeedId, savedEvenSpeed );
         setParamNormalized( kBitDepthId, savedBitDepth );
+        setParamNormalized( kWaveformId, savedWaveform );
+        setParamNormalized( kTypeId, savedType );
 
 // --- AUTO-GENERATED SETSTATE SETPARAM END
 
@@ -269,6 +295,16 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
 
         case kBitDepthId:
             sprintf( text, "%.d Bits", ( int ) ( 15 * valueNormalized ) + 1 );
+            Steinberg::UString( string, 128 ).fromAscii( text );
+            return kResultTrue;
+
+        case kWaveformId:
+            sprintf( text, "%.2d %%", ( int ) ( valueNormalized * 100.f ));
+            Steinberg::UString( string, 128 ).fromAscii( text );
+            return kResultTrue;
+
+        case kTypeId:
+            sprintf( text, "%.2d %%", ( int ) ( valueNormalized * 100.f ));
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 

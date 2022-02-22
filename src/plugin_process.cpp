@@ -30,17 +30,17 @@ namespace Igorski {
 PluginProcess::PluginProcess( int amountOfChannels ) {
     _amountOfChannels = amountOfChannels;
 
-    // cache the waveforms (as sample rate is now known)
+    // cache the waveforms (as sample rate is known to be accurate on PluginProcess construction)
 
-    WaveGenerator::WaveForms waveForm = WaveGenerator::WaveForms::SQUARE;
+    TablePool::setTable( WaveGenerator::generate( 512, WaveGenerator::WaveForms::SINE ),     WaveGenerator::WaveForms::SINE );
+    TablePool::setTable( WaveGenerator::generate( 512, WaveGenerator::WaveForms::TRIANGLE ), WaveGenerator::WaveForms::TRIANGLE );
+    TablePool::setTable( WaveGenerator::generate( 512, WaveGenerator::WaveForms::SAWTOOTH ), WaveGenerator::WaveForms::SAWTOOTH );
+    TablePool::setTable( WaveGenerator::generate( 512, WaveGenerator::WaveForms::SQUARE ),   WaveGenerator::WaveForms::SQUARE );
 
-    TablePool::setTable( WaveGenerator::generate( 512, waveForm ), waveForm );
-
-    for ( int i = 0; i < amountOfChannels; ++i ) {
-        _waveTables.push_back( TablePool::getTable( waveForm )->clone() );
-    }
+    createGateTables( WaveGenerator::WaveForms::TRIANGLE );
 
     // these will be synced to host, see vst.cpp. here we default to 120 BPM in 4/4 time
+
     _tempo               = 120.f;
     _fullMeasureDuration = 2.f;
     _timeSigNumerator    = 4;
@@ -65,10 +65,8 @@ PluginProcess::~PluginProcess() {
     delete _preMixBuffer;
     delete _recordBuffer;
 
-    while ( _waveTables.size() > 0 ) {
-        delete _waveTables.at( 0 );
-        _waveTables.erase( _waveTables.begin() );
-    }
+    clearGateTables();
+
     TablePool::flush();
 }
 
@@ -80,7 +78,7 @@ void PluginProcess::setGateSpeed( float evenSteps, float oddSteps )
     float evenValue = 1.f / ( _fullMeasureDuration / (( 31.f * evenSteps ) + 1.f ));
     float oddValue  = 1.f / ( _fullMeasureDuration / (( 31.f * oddSteps )  + 1.f ));
 
-    for ( int i = 0; i < _amountOfChannels; ++i ) {
+    for ( size_t i = 0; i < _amountOfChannels; ++i ) {
         _waveTables.at( i )->setFrequency(( i + 1 ) % 2 == 0 ? evenValue : oddValue );
     }
 }
@@ -90,8 +88,8 @@ void PluginProcess::resetReadWritePointers()
     _readPointer  = 0.f;
     _writePointer = 0;
 
-    for ( int i = 0; i < _amountOfChannels; ++i ) {
-        _waveTables.at( i )->setAccumulator( 0 );
+    for ( auto waveTable : _waveTables ) {
+        waveTable->setAccumulator( 0 );
     }
 }
 
@@ -122,8 +120,39 @@ void PluginProcess::setTempo( double tempo, int32 timeSigNumerator, int32 timeSi
     setGateSpeed( evenSteps, oddSteps );
 }
 
+void PluginProcess::createGateTables( float normalizedWaveFormType ) {
+    if ( _gateTableType == normalizedWaveFormType ) {
+        return;
+    }
+    _gateTableType = normalizedWaveFormType;
+    clearGateTables();
+
+    WaveGenerator::WaveForms waveForm = WaveGenerator::WaveForms::SINE;
+
+    if ( normalizedWaveFormType > 0.75f ) {
+        waveForm = WaveGenerator::WaveForms::SQUARE;
+    } else if ( normalizedWaveFormType > 0.5f ) {
+        waveForm = WaveGenerator::WaveForms::SAWTOOTH;
+    } else if ( normalizedWaveFormType > 0.25f ) {
+        waveForm = WaveGenerator::WaveForms::TRIANGLE;
+    }
+
+    for ( size_t i = 0; i < _amountOfChannels; ++i ) {
+        _waveTables.push_back( TablePool::getTable( waveForm )->clone() );
+    }
+}
+
 void PluginProcess::syncGates() {
 
+}
+
+/* private methods */
+
+void PluginProcess::clearGateTables() {
+    while ( _waveTables.size() > 0 ) {
+        delete _waveTables.at( 0 );
+        _waveTables.erase( _waveTables.begin() );
+    }
 }
 
 }

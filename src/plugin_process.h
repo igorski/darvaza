@@ -62,7 +62,12 @@ class PluginProcess {
         void setTempo( double tempo, int32 timeSigNumerator, int32 timeSigDenominator, float evenSteps, float oddSteps );
 
         // resets gate envelope to 0 position (e.g. on sequencer stop/start)
+
         void syncGates();
+
+        // assigns the appropriate WaveTables to each gate
+
+        void createGateTables( float normalizedWaveFormType );
 
         void resetReadWritePointers();
         void clearRecordBuffer();
@@ -95,6 +100,9 @@ class PluginProcess {
         int32 _timeSigNumerator;
         int32 _timeSigDenominator;
         float _fullMeasureDuration;
+
+        void clearGateTables();
+        float _gateTableType = -1.f;
 
         // ensures the pre- and post mix buffers match the appropriate amount of channels
         // and buffer size. the buffers are pooled so this can be called upon each process

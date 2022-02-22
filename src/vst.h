@@ -91,6 +91,8 @@ class Darvaza : public AudioEffect
         float fOddSpeed = 0.f;    // Odd channel speed
         float fEvenSpeed = 0.f;    // Even channel speed
         float fBitDepth = 1.f;    // Torture
+        float fWaveform = 1.f;    // Door
+        float fType = 1.f;    // Evil
 
 // --- AUTO-GENERATED END
 

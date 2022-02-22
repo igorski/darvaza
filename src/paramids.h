@@ -33,6 +33,8 @@ enum
     kOddSpeedId = 0,    // Odd channel speed
     kEvenSpeedId = 1,    // Even channel speed
     kBitDepthId = 2,    // Torture
+    kWaveformId = 3,    // Door
+    kTypeId = 4,    // Evil
 
 // --- AUTO-GENERATED END
 

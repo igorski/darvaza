@@ -143,6 +143,16 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
                             fBitDepth = ( float ) value;
                         break;
 
+                    case kWaveformId:
+                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
+                            fWaveform = ( float ) value;
+                        break;
+
+                    case kTypeId:
+                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
+                            fType = ( float ) value;
+                        break;
+
 // --- AUTO-GENERATED PROCESS END
                 }
                 syncModel();
@@ -267,6 +277,14 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
     if ( state->read( &savedBitDepth, sizeof ( float )) != kResultOk )
         return kResultFalse;
 
+    float savedWaveform = 0.f;
+    if ( state->read( &savedWaveform, sizeof ( float )) != kResultOk )
+        return kResultFalse;
+
+    float savedType = 0.f;
+    if ( state->read( &savedType, sizeof ( float )) != kResultOk )
+        return kResultFalse;
+
 // --- AUTO-GENERATED SETSTATE END
 
 #if BYTEORDER == kBigEndian
@@ -275,6 +293,8 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
    SWAP_32( savedOddSpeed )
    SWAP_32( savedEvenSpeed )
    SWAP_32( savedBitDepth )
+   SWAP_32( savedWaveform )
+   SWAP_32( savedType )
 
 // --- AUTO-GENERATED SETSTATE SWAP END
 
@@ -284,6 +304,8 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
     fOddSpeed = savedOddSpeed;
     fEvenSpeed = savedEvenSpeed;
     fBitDepth = savedBitDepth;
+    fWaveform = savedWaveform;
+    fType = savedType;
 
 // --- AUTO-GENERATED SETSTATE APPLY END
 
@@ -331,6 +353,8 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
     float toSaveOddSpeed = fOddSpeed;
     float toSaveEvenSpeed = fEvenSpeed;
     float toSaveBitDepth = fBitDepth;
+    float toSaveWaveform = fWaveform;
+    float toSaveType = fType;
 
 // --- AUTO-GENERATED GETSTATE END
 
@@ -341,6 +365,8 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
    SWAP_32( toSaveOddSpeed )
    SWAP_32( toSaveEvenSpeed )
    SWAP_32( toSaveBitDepth )
+   SWAP_32( toSaveWaveform )
+   SWAP_32( toSaveType )
 
 // --- AUTO-GENERATED GETSTATE SWAP END
 
@@ -350,6 +376,8 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
     state->write( &toSaveOddSpeed, sizeof( float ));
     state->write( &toSaveEvenSpeed, sizeof( float ));
     state->write( &toSaveBitDepth, sizeof( float ));
+    state->write( &toSaveWaveform, sizeof( float ));
+    state->write( &toSaveType, sizeof( float ));
 
 // --- AUTO-GENERATED GETSTATE APPLY END
 
@@ -462,7 +490,7 @@ tresult PLUGIN_API Darvaza::notify( IMessage* message )
         {
             // we are in UI thread
             // size should be 100
-            if ( size == 100 && ((char*)data)[1] == 1 ) // yeah...
+            if ( size == 100 && (( char* ) data )[ 1 ] == 1 ) // yeah...
             {
                 fprintf( stderr, "[Darvaza] received the binary message!\n" );
             }
@@ -477,6 +505,7 @@ void Darvaza::syncModel()
 {
     // forward the protected model values onto the plugin process and related processors
     // NOTE: when dealing with "bool"-types, use Calc::toBool() to determine on/off
+    pluginProcess->createGateTables( fWaveform ); // should come before gate speed updates
     pluginProcess->setGateSpeed( fEvenSpeed, fOddSpeed );
     pluginProcess->bitCrusher->setAmount( fBitDepth );
 }

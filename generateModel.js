@@ -52,6 +52,20 @@ const MODEL = [
         ui: { x: 299, y: 165, w: 104, h: 21 },
         // note we treat full resolution as 16-bits (but is in fact whatever host is)
         customDescr: 'sprintf( text, "%.d Bits", ( int ) ( 15 * valueNormalized ) + 1 );'
+    },
+    {
+        name: 'waveform',
+        descr: 'Door',
+        unitDescr: '%',
+        value: { min: '0.f', max: '1.f', def: '1.f', type: 'percent' },
+        ui: { x: 249, y: 205, w: 104, h: 21 }
+    },
+    {
+        name: 'type',
+        descr: 'Evil',
+        unitDescr: '%',
+        value: { min: '0.f', max: '1.f', def: '1.f', type: 'percent' },
+        ui: { x: 299, y: 205, w: 104, h: 21 }
     }
 ];
 
