@@ -170,10 +170,9 @@ void PluginProcess::setPlaybackRate( float value )
     bool wasSlowedDown = isSlowedDown();
     _playbackRate      = scaledAmount;
 
-    // if slowdown is deactivated and there is no down sampling taking place:
-    // sync the read pointer with the write pointer
+    // if slowdown is deactivated sync the read pointer with the write pointer
 
-    if ( wasSlowedDown && !isSlowedDown() && !isDownSampled() ) {
+    if ( wasSlowedDown && !isSlowedDown() ) {
         _readPointer = ( float ) _writePointer;
     }
 }
