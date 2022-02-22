@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2013-2018 Igor Zinken - https://www.igorski.nl
+ * Copyright (c) 2013-2022 Igor Zinken - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -35,54 +35,21 @@ BitCrusher::BitCrusher( float amount, float inputMix, float outputMix )
     setAmount   ( amount );
     setInputMix ( inputMix );
     setOutputMix( outputMix );
-
-    _tempAmount = _amount;
-
-    lfo = new LFO();
-    hasLFO = false;
 }
 
 BitCrusher::~BitCrusher()
 {
-    delete lfo;
+    // nowt
 }
 
 /* public methods */
 
-void BitCrusher::setLFO( float LFORatePercentage, float LFODepth )
-{
-    bool wasEnabled = hasLFO;
-    bool enabled    = LFORatePercentage > 0.f;
-
-    hasLFO = enabled;
-
-    bool hadChange = ( wasEnabled != enabled ) || _lfoDepth != LFODepth;
-
-    if ( enabled )
-        lfo->setRate(
-            VST::MIN_LFO_RATE() + (
-                LFORatePercentage * ( VST::MAX_LFO_RATE() - VST::MIN_LFO_RATE() )
-            )
-        );
-
-    // turning LFO off
-    if ( !hasLFO && wasEnabled ) {
-        _tempAmount = _amount;
-        calcBits();
-    }
-
-    if ( hadChange ) {
-        _lfoDepth = LFODepth;
-        cacheLFO();
-    }
-}
-
 void BitCrusher::process( float* inBuffer, int bufferSize )
 {
     // sound should not be crushed ? do nothing
-    if ( _bits == 16 && !hasLFO )
+    if ( _bits == 16 ) {
         return;
-
+    }
     int bitsPlusOne = _bits + 1;
 
     for ( int i = 0; i < bufferSize; ++i )
@@ -91,16 +58,6 @@ void BitCrusher::process( float* inBuffer, int bufferSize )
         short prevent_offset = ( short )( -1 >> bitsPlusOne );
         input &= ( -1 << ( 16 - _bits ));
         inBuffer[ i ] = (( input + prevent_offset ) * _outputMix ) / SHRT_MAX;
-
-        if ( hasLFO ) {
-            // multiply by .5 and add .5 to make the LFO's bipolar waveform unipolar
-            float lfoValue = lfo->peek() * .5f  + .5f;
-            _tempAmount = std::min( _lfoMax, _lfoMin + _lfoRange * lfoValue );
-
-            // recalculate the current resolution
-            calcBits();
-            bitsPlusOne = _bits + 1;
-        }
     }
 }
 
@@ -108,15 +65,8 @@ void BitCrusher::process( float* inBuffer, int bufferSize )
 
 void BitCrusher::setAmount( float value )
 {
-    float tempRatio = _tempAmount / std::max( 0.000000001f, _amount );
-
     _amount = value;
 
-    // in case BitCrusher is attached to oscillator, keep relative offset
-    // of currently moving bit resolution in place
-    _tempAmount = ( hasLFO ) ? _amount * tempRatio : _amount;
-
-    cacheLFO();
     calcBits();
 }
 
@@ -132,17 +82,10 @@ void BitCrusher::setOutputMix( float value )
 
 /* private methods */
 
-void BitCrusher::cacheLFO()
-{
-    _lfoRange = ( float ) _amount * _lfoDepth;
-    _lfoMax   = std::min( 1.f, ( float ) _amount + _lfoRange / 2.f );
-    _lfoMin   = std::max( 0.f, ( float ) _amount - _lfoRange / 2.f );
-}
-
 void BitCrusher::calcBits()
 {
     // scale float to 1 - 16 bit range
-    _bits = ( int ) floor( Calc::scale( _tempAmount, 1, 15 )) + 1;
+    _bits = ( int ) floor( Calc::scale( _amount, 1, 15 )) + 1;
 }
 
 }
