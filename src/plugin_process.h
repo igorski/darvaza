@@ -29,6 +29,7 @@
 #include "limiter.h"
 #include "lowpassfilter.h"
 #include "reverb.h"
+#include "wavegenerator.h"
 #include "wavetable.h"
 #include <vector>
 
@@ -83,6 +84,7 @@ class PluginProcess {
 
         void setPlaybackRate( float value );
         void setResampleRate( float value );
+        void enableReverb( bool enabled );
 
         // child processors
 
@@ -96,6 +98,8 @@ class PluginProcess {
 
         AudioBuffer* _recordBuffer; // buffer used to record incoming signal
         AudioBuffer* _preMixBuffer; // buffer used for the pre effect mixing
+
+        bool _reverbEnabled = false;
 
         // read/write pointers for the record buffer used for record and playback
 
@@ -125,7 +129,9 @@ class PluginProcess {
         float _playbackRate = MIN_PLAYBACK_SPEED; // 1 == 100% (no change), < 1 is lower playback speed
         float _fSampleIncr;
         int   _sampleIncr;
+
         std::vector<LowPassFilter*> _lowPassFilters;
+        std::vector<Reverb*> _reverbs;
 
         inline bool isSlowedDown() {
             return _playbackRate < 1.f;
@@ -136,7 +142,7 @@ class PluginProcess {
         }
 
         void clearGateTables();
-        float _gateTableType = -1.f;
+        WaveGenerator::WaveForms _gateWaveForm;
 
         // ensures the pre- and post mix buffers match the appropriate amount of channels
         // and buffer size. the buffers are pooled so this can be called upon each process

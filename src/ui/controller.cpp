@@ -107,12 +107,9 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
     );
     parameters.addParameter( waveformParam );
 
-    RangeParameter* typeParam = new RangeParameter(
-        USTRING( "Evil" ), kTypeId, USTRING( "%" ),
-        0.f, 1.f, 1.f,
-        0, ParameterInfo::kCanAutomate, unitId
+    parameters.addParameter(
+        USTRING( "Evil" ), 0, 1, 0, ParameterInfo::kCanAutomate, kReverbId, unitId
     );
-    parameters.addParameter( typeParam );
 
     RangeParameter* resampleRateParam = new RangeParameter(
         USTRING( "Regret" ), kResampleRateId, USTRING( "%" ),
@@ -168,8 +165,8 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         if ( state->read( &savedWaveform, sizeof( float )) != kResultOk )
             return kResultFalse;
 
-        float savedType = 1.f;
-        if ( state->read( &savedType, sizeof( float )) != kResultOk )
+        float savedReverb = 1.f;
+        if ( state->read( &savedReverb, sizeof( float )) != kResultOk )
             return kResultFalse;
 
         float savedResampleRate = 1.f;
@@ -189,7 +186,7 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
     SWAP_32( savedEvenSpeed )
     SWAP_32( savedBitDepth )
     SWAP_32( savedWaveform )
-    SWAP_32( savedType )
+    SWAP_32( savedReverb )
     SWAP_32( savedResampleRate )
     SWAP_32( savedPlaybackRate )
 
@@ -201,7 +198,7 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         setParamNormalized( kEvenSpeedId, savedEvenSpeed );
         setParamNormalized( kBitDepthId, savedBitDepth );
         setParamNormalized( kWaveformId, savedWaveform );
-        setParamNormalized( kTypeId, savedType );
+        setParamNormalized( kReverbId, savedReverb );
         setParamNormalized( kResampleRateId, savedResampleRate );
         setParamNormalized( kPlaybackRateId, savedPlaybackRate );
 
@@ -330,8 +327,8 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
-        case kTypeId:
-            sprintf( text, "%.2d %%", ( int ) ( valueNormalized * 100.f ));
+        case kReverbId:
+            sprintf( text, "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 

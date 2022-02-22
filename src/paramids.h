@@ -34,7 +34,7 @@ enum
     kEvenSpeedId = 1,    // Even channel speed
     kBitDepthId = 2,    // Torture
     kWaveformId = 3,    // Door
-    kTypeId = 4,    // Evil
+    kReverbId = 4,    // Evil
     kResampleRateId = 5,    // Regret
     kPlaybackRateId = 6,    // Sorrow
 

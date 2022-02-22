@@ -61,10 +61,10 @@ const MODEL = [
         ui: { x: 249, y: 205, w: 104, h: 21 }
     },
     {
-        name: 'type',
+        name: 'reverb',
         descr: 'Evil',
         unitDescr: '%',
-        value: { min: '0.f', max: '1.f', def: '1.f', type: 'percent' },
+        value: { min: '0', max: '1', def: '0', type: 'bool' },
         ui: { x: 299, y: 205, w: 104, h: 21 }
     },
     {

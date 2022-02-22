@@ -32,10 +32,9 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
     // by the templates SampleType value. Internally we process
     // audio as floats
 
-    SampleType inSample, outSample;
     int32 i;
 
-    float readPointer;
+    float readPointer, tmpSample;
     int writePointer;
     int writtenSamples;
 
@@ -67,10 +66,10 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
             if ( writePointer > recordMax ) {
                 writePointer = 0;
             }
-            float inSample = ( float ) channelInBuffer[ i ];
+            tmpSample = ( float ) channelInBuffer[ i ];
 
-            channelRecordBuffer[ writePointer ] = inSample;
-            channelPreMixBuffer[ i ] = inSample;
+            channelRecordBuffer[ writePointer ] = tmpSample;
+            channelPreMixBuffer[ i ]            = tmpSample;
         }
 
         // 2. in case we should play at a custom rate from the record buffer
@@ -78,7 +77,7 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
         if ( playFromRecordBuffer ) {
 
-            float nextSample, curSample;
+            float nextSample, curSample, outSample;
             int r1 = 0, r2 = 0, t, t2;
             float frac, s1, s2;
             float incr = _fSampleIncr * _playbackRate; // iterator size when reading from recorded buffer
@@ -130,6 +129,8 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
         // 4. apply gate and mix the input and processed mix buffer into the output buffer
 
+        Reverb* reverb = _reverbs.at( c );
+
         for ( i = 0; i < bufferSize; ++i ) {
 
             // increment the written sample amount to keep track of key positions
@@ -141,32 +142,32 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
             // run sample accurate property updates
 
-            if ( writtenSamples % _beatSamples == 0 ) {
+            if (( writtenSamples % _beatSamples ) == 0 ) {
                 // a beat has passed
                 //setGateSpeed( writtenSamples == 0 ? 0.5f : 0.1f, writtenSamples == 0 ? 0.5f : 0.1f );
                 reverb->toggleFreeze();
             }
-
-            // before writing to the out buffer we take a snapshot of the current in sample
-
-            inSample = channelInBuffer[ i ];
-
-            // run the pre mix effects that require sample accurate property updates
-
-            outSample = reverb->processSingle( channelPreMixBuffer[ i ] );
 
             // open / close the gate
             // note we multiply by .5 and add .5 to make the LFO's bipolar waveform unipolar
 
             SampleType gateLevel = ( SampleType ) ( table->peek() * .5f + .5f );
 
-            // write the mix buffer for the gate value
+            tmpSample = channelPreMixBuffer[ i ];
 
-            channelOutBuffer[ i ] = ( SampleType ) ( outSample ) * gateLevel;
+            // run the pre mix effects that require sample accurate property updates
 
-            // dry mix (e.g. mix in the input signal on the negative gate)
+            if ( _reverbEnabled ) {
+                tmpSample = reverb->processSingle( tmpSample );
+            }
 
-            channelOutBuffer[ i ] += ( inSample * ( 1.0 - gateLevel ));
+            // blend in the effect mix buffer for the gates value
+
+            channelOutBuffer[ i ] = ( SampleType ) ( tmpSample * gateLevel );
+
+            // blend in the dry signal (mixed to the negative of the gated signal)
+
+            channelOutBuffer[ i ] += ( channelInBuffer[ i ] * ( 1.0 - gateLevel ));
         }
         // end of processing for channel.
     }
@@ -179,7 +180,7 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
     _writtenMeasureSamples = writtenSamples;
 
     // limit the output signal in case its gets hot
-    // limiter->process<SampleType>( outBuffer, bufferSize, numOutChannels );
+    limiter->process<SampleType>( outBuffer, bufferSize, numOutChannels );
 }
 
 template <typename SampleType>
