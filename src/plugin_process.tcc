@@ -32,15 +32,19 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
     // by the templates SampleType value. Internally we process
     // audio as floats
 
-    SampleType inSample, outSample;
-    int i, readIndex;
+    int32 i;
 
-    float readPointer;
+    float readPointer, tmpSample;
     int writePointer;
-    int recordMax = _maxRecordBufferSize - 1;
     int writtenSamples;
 
+    int recordMax     = _maxRecordBufferSize - 1;
+    int maxBufferPos  = bufferSize - 1;
+    int maxReadOffset = _writePointer + maxBufferPos; // never read beyond the range of the current incoming input
+
     prepareMixBuffers( inBuffer, numInChannels, bufferSize );
+
+    bool playFromRecordBuffer = isSlowedDown() || isDownSampled();
 
     for ( int32 c = 0; c < numInChannels; ++c )
     {
@@ -56,23 +60,76 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
         writtenSamples = _writtenMeasureSamples;
 
-        // write input into the record and pre mix buffers (converting to float when necessary)
+        // 1. write incoming input into the record and pre mix buffers (converting to float when necessary)
 
         for ( i = 0; i < bufferSize; ++i, ++writePointer ) {
             if ( writePointer > recordMax ) {
                 writePointer = 0;
             }
-            float inSample = ( float ) channelInBuffer[ i ];
+            tmpSample = ( float ) channelInBuffer[ i ];
 
-            channelRecordBuffer[ writePointer ] = inSample;
-            channelPreMixBuffer[ i ] = inSample;
+            channelRecordBuffer[ writePointer ] = tmpSample;
+            channelPreMixBuffer[ i ]            = tmpSample;
         }
 
-        // run the pre mix effects that require no sample accurate property updates
+        // 2. in case we should play at a custom rate from the record buffer
+        // fill the pre mix buffer with the appropriate slowed down recorded content
+
+        if ( playFromRecordBuffer ) {
+
+            float nextSample, curSample, outSample;
+            int r1 = 0, r2 = 0, t, t2;
+            float frac, s1, s2;
+            float incr = _fSampleIncr * _playbackRate; // iterator size when reading from recorded buffer
+
+            LowPassFilter* lowPassFilter = _lowPassFilters.at( c );
+            float lastSample = _lastSamples[ c ];
+
+            i = 0;
+            while ( i < bufferSize ) {
+                t  = ( int ) readPointer;
+                t2 = std::min( recordMax, t + _sampleIncr );
+
+                // this fractional is in the 0 - 1 range
+
+                frac = /*readPointer - t;*/ 0.f;
+
+                s1 = channelRecordBuffer[ t ];
+                s2 = channelRecordBuffer[ t2 ];
+
+                // we apply a lowpass filter to prevent interpolation artefacts
+
+                curSample = lowPassFilter->applySingle( s1 + ( s2 - s1 ) * frac );
+                outSample = curSample * .5f;
+
+                int start = i;
+                for ( int32 l = std::min( bufferSize, start + _sampleIncr ); i < l; ++i ) {
+                    r2 = r1;
+                    r1 = rand();
+
+                    nextSample = outSample + lastSample;
+                    lastSample = nextSample * .25f;
+
+                    // write sample into the output buffer, corrected for DC offset and dithering applied
+
+                    channelPreMixBuffer[ i ] = nextSample + DITHER_DC_OFFSET + DITHER_AMPLITUDE * ( r1 - r2 );
+                }
+
+                if (( readPointer += incr ) > maxReadOffset ) {
+                    // don't go to 0.f but align with current write offset to play "current audio"
+                    readPointer = ( float ) _writePointer;
+                }
+            }
+            _lastSamples[ c ] = lastSample;
+        }
+
+        // 3. run the pre mix effects that require no sample accurate property updates
 
         bitCrusher->process( channelPreMixBuffer, bufferSize );
 
-        // apply gate and mix the input and processed mix buffer into the output buffer
+        // 4. apply gate and mix the input and processed mix buffer into the output buffer
+
+        Reverb* reverb = _reverbs.at( c );
 
         for ( i = 0; i < bufferSize; ++i ) {
 
@@ -80,48 +137,50 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
             // within the current measure to align the gates to
 
             if ( ++writtenSamples >= _fullMeasureSamples ) {
-                _fullMeasureSamples = 0; // new measure
+                writtenSamples = 0; // new measure
             }
 
             // run sample accurate property updates
 
-            if ( writtenSamples % _beatSamples == 0 ) {
+            if (( writtenSamples % _beatSamples ) == 0 ) {
                 // a beat has passed
                 //setGateSpeed( writtenSamples == 0 ? 0.5f : 0.1f, writtenSamples == 0 ? 0.5f : 0.1f );
                 reverb->toggleFreeze();
             }
-
-            // before writing to the out buffer we take a snapshot of the current in sample
-            // value as VST2 in Ableton Live supplies the same buffer for inBuffer and outBuffer!
-
-            inSample = channelInBuffer[ i ];
-
-            // run the pre mix effects that require sample accurate property updates
-
-            outSample = reverb->processSingle( channelPreMixBuffer[ i ] );
 
             // open / close the gate
             // note we multiply by .5 and add .5 to make the LFO's bipolar waveform unipolar
 
             SampleType gateLevel = ( SampleType ) ( table->peek() * .5f + .5f );
 
-            // write the mix buffer for the gate value
+            tmpSample = channelPreMixBuffer[ i ];
 
-            channelOutBuffer[ i ] = ( SampleType ) ( outSample ) * gateLevel;
+            // run the pre mix effects that require sample accurate property updates
 
-            // dry mix (e.g. mix in the input signal on the negative gate)
+            if ( _reverbEnabled ) {
+                tmpSample = reverb->processSingle( tmpSample );
+            }
 
-            channelOutBuffer[ i ] += ( inSample * ( 1.0 - gateLevel ));
+            // blend in the effect mix buffer for the gates value
+
+            channelOutBuffer[ i ] = ( SampleType ) ( tmpSample * gateLevel );
+
+            // blend in the dry signal (mixed to the negative of the gated signal)
+
+            channelOutBuffer[ i ] += ( channelInBuffer[ i ] * ( 1.0 - gateLevel ));
         }
+        // end of processing for channel.
     }
+
     // update read/write indices
+
     _readPointer  = readPointer;
     _writePointer = writePointer;
 
     _writtenMeasureSamples = writtenSamples;
 
     // limit the output signal in case its gets hot
-    //limiter->process<SampleType>( outBuffer, bufferSize, numOutChannels );
+    limiter->process<SampleType>( outBuffer, bufferSize, numOutChannels );
 }
 
 template <typename SampleType>

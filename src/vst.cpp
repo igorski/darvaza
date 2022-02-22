@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Igor Zinken - https://www.igorski.nl
+ * Copyright (c) 2020-2022 Igor Zinken - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -148,9 +148,19 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
                             fWaveform = ( float ) value;
                         break;
 
-                    case kTypeId:
+                    case kReverbId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fType = ( float ) value;
+                            fReverb = ( float ) value;
+                        break;
+
+                    case kResampleRateId:
+                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
+                            fResampleRate = ( float ) value;
+                        break;
+
+                    case kPlaybackRateId:
+                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
+                            fPlaybackRate = ( float ) value;
                         break;
 
 // --- AUTO-GENERATED PROCESS END
@@ -281,8 +291,16 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
     if ( state->read( &savedWaveform, sizeof ( float )) != kResultOk )
         return kResultFalse;
 
-    float savedType = 0.f;
-    if ( state->read( &savedType, sizeof ( float )) != kResultOk )
+    float savedReverb = 0.f;
+    if ( state->read( &savedReverb, sizeof ( float )) != kResultOk )
+        return kResultFalse;
+
+    float savedResampleRate = 0.f;
+    if ( state->read( &savedResampleRate, sizeof ( float )) != kResultOk )
+        return kResultFalse;
+
+    float savedPlaybackRate = 0.f;
+    if ( state->read( &savedPlaybackRate, sizeof ( float )) != kResultOk )
         return kResultFalse;
 
 // --- AUTO-GENERATED SETSTATE END
@@ -294,7 +312,9 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
    SWAP_32( savedEvenSpeed )
    SWAP_32( savedBitDepth )
    SWAP_32( savedWaveform )
-   SWAP_32( savedType )
+   SWAP_32( savedReverb )
+   SWAP_32( savedResampleRate )
+   SWAP_32( savedPlaybackRate )
 
 // --- AUTO-GENERATED SETSTATE SWAP END
 
@@ -305,7 +325,9 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
     fEvenSpeed = savedEvenSpeed;
     fBitDepth = savedBitDepth;
     fWaveform = savedWaveform;
-    fType = savedType;
+    fReverb = savedReverb;
+    fResampleRate = savedResampleRate;
+    fPlaybackRate = savedPlaybackRate;
 
 // --- AUTO-GENERATED SETSTATE APPLY END
 
@@ -354,7 +376,9 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
     float toSaveEvenSpeed = fEvenSpeed;
     float toSaveBitDepth = fBitDepth;
     float toSaveWaveform = fWaveform;
-    float toSaveType = fType;
+    float toSaveReverb = fReverb;
+    float toSaveResampleRate = fResampleRate;
+    float toSavePlaybackRate = fPlaybackRate;
 
 // --- AUTO-GENERATED GETSTATE END
 
@@ -366,7 +390,9 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
    SWAP_32( toSaveEvenSpeed )
    SWAP_32( toSaveBitDepth )
    SWAP_32( toSaveWaveform )
-   SWAP_32( toSaveType )
+   SWAP_32( toSaveReverb )
+   SWAP_32( toSaveResampleRate )
+   SWAP_32( toSavePlaybackRate )
 
 // --- AUTO-GENERATED GETSTATE SWAP END
 
@@ -377,7 +403,9 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
     state->write( &toSaveEvenSpeed, sizeof( float ));
     state->write( &toSaveBitDepth, sizeof( float ));
     state->write( &toSaveWaveform, sizeof( float ));
-    state->write( &toSaveType, sizeof( float ));
+    state->write( &toSaveReverb, sizeof( float ));
+    state->write( &toSaveResampleRate, sizeof( float ));
+    state->write( &toSavePlaybackRate, sizeof( float ));
 
 // --- AUTO-GENERATED GETSTATE APPLY END
 
@@ -508,6 +536,9 @@ void Darvaza::syncModel()
     pluginProcess->createGateTables( fWaveform ); // should come before gate speed updates
     pluginProcess->setGateSpeed( fEvenSpeed, fOddSpeed );
     pluginProcess->bitCrusher->setAmount( fBitDepth );
+    pluginProcess->setResampleRate( fResampleRate );
+    pluginProcess->setPlaybackRate( fPlaybackRate );
+    pluginProcess->enableReverb( Calc::toBool( fReverb ));
 }
 
 }

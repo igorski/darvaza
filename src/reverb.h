@@ -77,7 +77,7 @@ class Reverb {
     static constexpr float INITIAL_ROOM       = 0.5f;
     static constexpr float INITIAL_DAMP       = 0.5f;
     static constexpr float INITIAL_WET        = 1 / SCALE_WET;
-    static constexpr float INITIAL_DRY        = 0.5;
+    static constexpr float INITIAL_DRY        = 0.5f;
     static constexpr float INITIAL_WIDTH      = 1;
     static constexpr float INITIAL_MODE       = 0;
     static constexpr float FREEZE_MODE        = 0.5f;

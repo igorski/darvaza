@@ -27,6 +27,7 @@
 #define __LIMITER_H_INCLUDED__
 
 #include "audiobuffer.h"
+#include <math.h>
 
 class Limiter
 {

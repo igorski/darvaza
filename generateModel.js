@@ -61,12 +61,28 @@ const MODEL = [
         ui: { x: 249, y: 205, w: 104, h: 21 }
     },
     {
-        name: 'type',
+        name: 'reverb',
         descr: 'Evil',
         unitDescr: '%',
-        value: { min: '0.f', max: '1.f', def: '1.f', type: 'percent' },
+        value: { min: '0', max: '1', def: '0', type: 'bool' },
         ui: { x: 299, y: 205, w: 104, h: 21 }
-    }
+    },
+    {
+        name: 'resampleRate',
+        descr: 'Regret',
+        unitDescr: '%',
+        value: { min: '0.f', max: '1.f', def: '1.f', type: 'percent' },
+        ui: { x: 292, y: 196, w: 134, h: 21 },
+        customDescr: 'sprintf( text, "%.2d Hz", ( int ) (( Igorski::VST::SAMPLE_RATE - Igorski::PluginProcess::MIN_SAMPLE_RATE ) * valueNormalized ) + ( int ) Igorski::PluginProcess::MIN_SAMPLE_RATE );'
+    },
+    {
+        name: 'playbackRate',
+        descr: 'Sorrow',
+        unitDescr: '%',
+        value: { min: '0.f', max: '1.f', def: '1.f', type: 'percent' },
+        ui: { x: 292, y: 346, w: 134, h: 21 },
+        customDescr: 'sprintf( text, "%.2d %%", ( int ) (( valueNormalized * ( 100.f * Igorski::PluginProcess::MIN_PLAYBACK_SPEED )) + ( Igorski::PluginProcess::MIN_PLAYBACK_SPEED * 100.f )));'
+    },
 ];
 
 // DO NOT CHANGE BELOW

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Igor Zinken - https://www.igorski.nl
+ * Copyright (c) 2020-2022 Igor Zinken - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,9 +21,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #include "../global.h"
+#include "../plugin_process.h"
+#include "../paramids.h"
 #include "controller.h"
 #include "uimessagecontroller.h"
-#include "../paramids.h"
 
 #include "pluginterfaces/base/ibstream.h"
 #include "pluginterfaces/base/ustring.h"
@@ -106,12 +107,23 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
     );
     parameters.addParameter( waveformParam );
 
-    RangeParameter* typeParam = new RangeParameter(
-        USTRING( "Evil" ), kTypeId, USTRING( "%" ),
+    parameters.addParameter(
+        USTRING( "Evil" ), 0, 1, 0, ParameterInfo::kCanAutomate, kReverbId, unitId
+    );
+
+    RangeParameter* resampleRateParam = new RangeParameter(
+        USTRING( "Regret" ), kResampleRateId, USTRING( "%" ),
         0.f, 1.f, 1.f,
         0, ParameterInfo::kCanAutomate, unitId
     );
-    parameters.addParameter( typeParam );
+    parameters.addParameter( resampleRateParam );
+
+    RangeParameter* playbackRateParam = new RangeParameter(
+        USTRING( "Sorrow" ), kPlaybackRateId, USTRING( "%" ),
+        0.f, 1.f, 1.f,
+        0, ParameterInfo::kCanAutomate, unitId
+    );
+    parameters.addParameter( playbackRateParam );
 
 // --- AUTO-GENERATED END
 
@@ -153,8 +165,16 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         if ( state->read( &savedWaveform, sizeof( float )) != kResultOk )
             return kResultFalse;
 
-        float savedType = 1.f;
-        if ( state->read( &savedType, sizeof( float )) != kResultOk )
+        float savedReverb = 1.f;
+        if ( state->read( &savedReverb, sizeof( float )) != kResultOk )
+            return kResultFalse;
+
+        float savedResampleRate = 1.f;
+        if ( state->read( &savedResampleRate, sizeof( float )) != kResultOk )
+            return kResultFalse;
+
+        float savedPlaybackRate = 1.f;
+        if ( state->read( &savedPlaybackRate, sizeof( float )) != kResultOk )
             return kResultFalse;
 
 // --- AUTO-GENERATED SETSTATE END
@@ -166,7 +186,9 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
     SWAP_32( savedEvenSpeed )
     SWAP_32( savedBitDepth )
     SWAP_32( savedWaveform )
-    SWAP_32( savedType )
+    SWAP_32( savedReverb )
+    SWAP_32( savedResampleRate )
+    SWAP_32( savedPlaybackRate )
 
 // --- AUTO-GENERATED SETSTATE SWAP END
 
@@ -176,7 +198,9 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         setParamNormalized( kEvenSpeedId, savedEvenSpeed );
         setParamNormalized( kBitDepthId, savedBitDepth );
         setParamNormalized( kWaveformId, savedWaveform );
-        setParamNormalized( kTypeId, savedType );
+        setParamNormalized( kReverbId, savedReverb );
+        setParamNormalized( kResampleRateId, savedResampleRate );
+        setParamNormalized( kPlaybackRateId, savedPlaybackRate );
 
 // --- AUTO-GENERATED SETSTATE SETPARAM END
 
@@ -303,8 +327,18 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
-        case kTypeId:
-            sprintf( text, "%.2d %%", ( int ) ( valueNormalized * 100.f ));
+        case kReverbId:
+            sprintf( text, "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
+            Steinberg::UString( string, 128 ).fromAscii( text );
+            return kResultTrue;
+
+        case kResampleRateId:
+            sprintf( text, "%.2d Hz", ( int ) (( Igorski::VST::SAMPLE_RATE - Igorski::PluginProcess::MIN_SAMPLE_RATE ) * valueNormalized ) + ( int ) Igorski::PluginProcess::MIN_SAMPLE_RATE );
+            Steinberg::UString( string, 128 ).fromAscii( text );
+            return kResultTrue;
+
+        case kPlaybackRateId:
+            sprintf( text, "%.2d %%", ( int ) (( valueNormalized * ( 100.f * Igorski::PluginProcess::MIN_PLAYBACK_SPEED )) + ( Igorski::PluginProcess::MIN_PLAYBACK_SPEED * 100.f )));
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 

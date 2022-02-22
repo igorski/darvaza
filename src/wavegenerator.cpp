@@ -69,7 +69,7 @@ namespace WaveGenerator
 
                         case WaveForms::TRIANGLE:
                             sample += sin(( float ) s * VST::TWO_PI * ( float ) t / tableSize );
-                            tmp     = 1.0 - ( float ) ( std::abs( sample - 0.5 )) * 4.0;
+                            tmp     = 1.0 - ( float ) ( std::abs( sample - 0.5 )) * 2.0;
                             break;
 
                         case WaveForms::SAWTOOTH:
