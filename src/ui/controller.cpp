@@ -130,6 +130,10 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
     );
     parameters.addParameter( playbackRateParam );
 
+    parameters.addParameter(
+        USTRING( "Choir" ), 0, 1, 0, ParameterInfo::kCanAutomate, kHarmonizeId, unitId
+    );
+
 // --- AUTO-GENERATED END
 
     // initialization
@@ -186,6 +190,10 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         if ( state->read( &savedPlaybackRate, sizeof( float )) != kResultOk )
             return kResultFalse;
 
+        float savedHarmonize = 1.f;
+        if ( state->read( &savedHarmonize, sizeof( float )) != kResultOk )
+            return kResultFalse;
+
 // --- AUTO-GENERATED SETSTATE END
 
 #if BYTEORDER == kBigEndian
@@ -199,6 +207,7 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
     SWAP_32( savedLinkGates )
     SWAP_32( savedResampleRate )
     SWAP_32( savedPlaybackRate )
+    SWAP_32( savedHarmonize )
 
 // --- AUTO-GENERATED SETSTATE SWAP END
 
@@ -212,6 +221,7 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         setParamNormalized( kLinkGatesId, savedLinkGates );
         setParamNormalized( kResampleRateId, savedResampleRate );
         setParamNormalized( kPlaybackRateId, savedPlaybackRate );
+        setParamNormalized( kHarmonizeId, savedHarmonize );
 
 // --- AUTO-GENERATED SETSTATE SETPARAM END
 
@@ -384,6 +394,11 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
 
         case kPlaybackRateId:
             sprintf( text, "%.2d %%", ( int ) (( valueNormalized * ( 100.f * Igorski::PluginProcess::MIN_PLAYBACK_SPEED )) + ( Igorski::PluginProcess::MIN_PLAYBACK_SPEED * 100.f )));
+            Steinberg::UString( string, 128 ).fromAscii( text );
+            return kResultTrue;
+
+        case kHarmonizeId:
+            sprintf( text, "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 

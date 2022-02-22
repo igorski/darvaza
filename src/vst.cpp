@@ -168,6 +168,11 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
                             fPlaybackRate = ( float ) value;
                         break;
 
+                    case kHarmonizeId:
+                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
+                            fHarmonize = ( float ) value;
+                        break;
+
 // --- AUTO-GENERATED PROCESS END
                 }
                 syncModel();
@@ -313,6 +318,10 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
     if ( state->read( &savedPlaybackRate, sizeof ( float )) != kResultOk )
         return kResultFalse;
 
+    float savedHarmonize = 0.f;
+    if ( state->read( &savedHarmonize, sizeof ( float )) != kResultOk )
+        return kResultFalse;
+
 // --- AUTO-GENERATED SETSTATE END
 
 #if BYTEORDER == kBigEndian
@@ -326,6 +335,7 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
    SWAP_32( savedLinkGates )
    SWAP_32( savedResampleRate )
    SWAP_32( savedPlaybackRate )
+   SWAP_32( savedHarmonize )
 
 // --- AUTO-GENERATED SETSTATE SWAP END
 
@@ -340,6 +350,7 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
     fLinkGates = savedLinkGates;
     fResampleRate = savedResampleRate;
     fPlaybackRate = savedPlaybackRate;
+    fHarmonize = savedHarmonize;
 
 // --- AUTO-GENERATED SETSTATE APPLY END
 
@@ -392,6 +403,7 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
     float toSaveLinkGates = fLinkGates;
     float toSaveResampleRate = fResampleRate;
     float toSavePlaybackRate = fPlaybackRate;
+    float toSaveHarmonize = fHarmonize;
 
 // --- AUTO-GENERATED GETSTATE END
 
@@ -407,6 +419,7 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
    SWAP_32( toSaveLinkGates )
    SWAP_32( toSaveResampleRate )
    SWAP_32( toSavePlaybackRate )
+   SWAP_32( toSaveHarmonize )
 
 // --- AUTO-GENERATED GETSTATE SWAP END
 
@@ -421,6 +434,7 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
     state->write( &toSaveLinkGates, sizeof( float ));
     state->write( &toSaveResampleRate, sizeof( float ));
     state->write( &toSavePlaybackRate, sizeof( float ));
+    state->write( &toSaveHarmonize, sizeof( float ));
 
 // --- AUTO-GENERATED GETSTATE APPLY END
 
@@ -553,6 +567,7 @@ void Darvaza::syncModel()
     pluginProcess->bitCrusher->setAmount( fBitDepth );
     pluginProcess->setResampleRate( fResampleRate );
     pluginProcess->setPlaybackRate( fPlaybackRate );
+    pluginProcess->enableHarmonize( Calc::toBool( fHarmonize ));
     pluginProcess->enableReverb( Calc::toBool( fReverb ));
 }
 

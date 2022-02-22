@@ -85,6 +85,7 @@ class PluginProcess {
         void setPlaybackRate( float value );
         void setResampleRate( float value );
         void enableReverb( bool enabled );
+        void enableHarmonize( bool enabled );
 
         // child processors
 
@@ -102,10 +103,13 @@ class PluginProcess {
         bool _reverbEnabled = false;
 
         // read/write pointers for the record buffer used for record and playback
+        // note that readPointers are unique per channel, as different playback
+        // speeds can be configured for these (e.g. _harmonize) the write pointer
+        // will always be equal
 
-        float _readPointer       = 0.f;
         int _writePointer        = 0;
         int _maxRecordBufferSize = 0;
+        float* _readPointers;
 
         // cached values for sample accurate calculation of relevant musical positions
 
@@ -129,12 +133,13 @@ class PluginProcess {
         float _playbackRate = MIN_PLAYBACK_SPEED; // 1 == 100% (no change), < 1 is lower playback speed
         float _fSampleIncr;
         int   _sampleIncr;
+        bool  _harmonize = false;
 
         std::vector<LowPassFilter*> _lowPassFilters;
         std::vector<Reverb*> _reverbs;
 
         inline bool isSlowedDown() {
-            return _playbackRate < 1.f;
+            return _playbackRate < 1.f || _harmonize;
         }
 
         inline bool isDownSampled() {

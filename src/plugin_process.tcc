@@ -48,7 +48,7 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
     for ( int32 c = 0; c < numInChannels; ++c )
     {
-        readPointer  = _readPointer;
+        readPointer  = _readPointers[ c ];
         writePointer = _writePointer;
 
         SampleType* channelInBuffer  = inBuffer[ c ];
@@ -81,6 +81,10 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
             int r1 = 0, r2 = 0, t, t2;
             float frac, s1, s2;
             float incr = _fSampleIncr * _playbackRate; // iterator size when reading from recorded buffer
+
+            if ( _harmonize ) {
+                incr = _fSampleIncr * Calc::pitchDown(( c % 2 ) == 0 ? 2 : 5 );
+            }
 
             LowPassFilter* lowPassFilter = _lowPassFilters.at( c );
             float lastSample = _lastSamples[ c ];
@@ -144,7 +148,10 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
             if (( writtenSamples % _beatSamples ) == 0 ) {
                 // a beat has passed
-                //setGateSpeed( writtenSamples == 0 ? 0.5f : 0.1f, writtenSamples == 0 ? 0.5f : 0.1f );
+                if ( c == 0 ) {
+                    // global parameters (gate speed, etc.) should only be toggled once per loop
+                    //setGateSpeed( writtenSamples == 0 ? 0.5f : 0.1f, writtenSamples == 0 ? 0.5f : 0.1f );
+                }
                 reverb->toggleFreeze();
             }
 
@@ -169,14 +176,15 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
             channelOutBuffer[ i ] += ( channelInBuffer[ i ] * ( 1.0 - gateLevel ));
         }
-        // end of processing for channel.
+        // end of processing for channel
+
+        // update read index
+        _readPointers[ c ] = readPointer;
     }
 
-    // update read/write indices
+    // update write indices
 
-    _readPointer  = readPointer;
-    _writePointer = writePointer;
-
+    _writePointer          = writePointer;
     _writtenMeasureSamples = writtenSamples;
 
     // limit the output signal in case its gets hot

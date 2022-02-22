@@ -48,19 +48,21 @@ PluginProcess::PluginProcess( int amountOfChannels ) {
     _timeSigNumerator    = 4;
     _timeSigDenominator  = 4;
 
-    setPlaybackRate( 1.f );
-    setResampleRate( 1.f );
-
     // child processors that can work on any audio channel
     // (e.g. don't maintain the last channel-specific state)
 
     bitCrusher = new BitCrusher( 8, .5f, .5f );
     limiter    = new Limiter( 10.f, 500.f, .6f );
 
-    _lastSamples = new float[ amountOfChannels ];
+    // child processors and properties that work on individual channels
+
+    _lastSamples  = new float[ amountOfChannels ];
+    _readPointers = new float[ amountOfChannels ];
 
     for ( int i = 0; i < amountOfChannels; ++i ) {
-        _lastSamples[ i ] = 0.f;
+        _lastSamples[ i ]  = 0.f;
+        _readPointers[ i ] = 0.f;
+
         _lowPassFilters.push_back( new LowPassFilter());
 
         Reverb* reverb = new Reverb();
@@ -69,6 +71,9 @@ PluginProcess::PluginProcess( int amountOfChannels ) {
 
         _reverbs.push_back( reverb );
     }
+
+    setPlaybackRate( 1.f );
+    setResampleRate( 1.f );
 
     // will be lazily created in the process function
     _recordBuffer = nullptr;
@@ -80,11 +85,13 @@ PluginProcess::~PluginProcess() {
     delete limiter;
 
     delete[] _lastSamples;
+    delete[] _readPointers;
 
     while ( _lowPassFilters.size() > 0 ) {
         delete _lowPassFilters.at( 0 );
         _lowPassFilters.erase( _lowPassFilters.begin() );
     }
+
     while ( _reverbs.size() > 0 ) {
         delete _reverbs.at( 0 );
         _reverbs.erase( _reverbs.begin() );
@@ -113,8 +120,11 @@ void PluginProcess::setGateSpeed( float oddSteps, float evenSteps )
 
 void PluginProcess::resetReadWritePointers()
 {
-    _readPointer  = 0.f;
     _writePointer = 0;
+
+    for ( size_t i = 0; i < _amountOfChannels; ++i ) {
+        _readPointers[ i ] = 0.f;
+    }
 
     for ( auto waveTable : _waveTables ) {
         waveTable->setAccumulator( 0 );
@@ -154,7 +164,9 @@ void PluginProcess::setResampleRate( float value )
     // sync the read pointer with the write pointer
 
     if ( wasDownSampled && !isDownSampled() && !isSlowedDown() ) {
-        _readPointer = ( float ) _writePointer;
+        for ( size_t i = 0; i < _amountOfChannels; ++i ) {
+            _readPointers[ i ] = ( float ) _writePointer;
+        }
     }
 }
 
@@ -173,13 +185,20 @@ void PluginProcess::setPlaybackRate( float value )
     // if slowdown is deactivated sync the read pointer with the write pointer
 
     if ( wasSlowedDown && !isSlowedDown() ) {
-        _readPointer = ( float ) _writePointer;
+        for ( size_t i = 0; i < _amountOfChannels; ++i ) {
+            _readPointers[ i ] = ( float ) _writePointer;
+        }
     }
 }
 
 void PluginProcess::enableReverb( bool enabled )
 {
     _reverbEnabled = enabled;
+}
+
+void PluginProcess::enableHarmonize( bool enabled )
+{
+    _harmonize = enabled;
 }
 
 /* other */

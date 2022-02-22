@@ -100,6 +100,17 @@
               transparent="true" transparent-handle="true" wheel-inc-value="0.1" zoom-factor="10"
         />
 
+        <!-- Choir -->
+        <view control-tag="Unit1::harmonizeParam" class="CCheckBox" origin="299, 205" size="104, 21"
+              max-value="1" min-value="0" default-value="0"
+              background-offset="0, 0" boxfill-color="~ GreenCColor" autosize="bottom"
+              boxframe-color="~ BlackCColor" checkmark-color="~ BlackCColor"
+              draw-crossbox="true" font="~ NormalFontSmall" font-color="Light Grey"
+              autosize-to-fit="false" frame-width="1"
+              mouse-enabled="true" opacity="1" round-rect-radius="0"
+              title="Choir" transparent="false" wants-focus="true" wheel-inc-value="0.1"
+        />
+
 <!-- AUTO-GENERATED CONTROLS END -->
 
     </template>
@@ -146,6 +157,7 @@
        <control-tag name="Unit1::linkGatesParam" tag="5" />
        <control-tag name="Unit1::resampleRateParam" tag="6" />
        <control-tag name="Unit1::playbackRateParam" tag="7" />
+       <control-tag name="Unit1::harmonizeParam" tag="8" />
 
 <!-- AUTO-GENERATED TAGS END -->
     </control-tags>

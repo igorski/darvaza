@@ -38,6 +38,7 @@ enum
     kLinkGatesId = 5,    // Link gates
     kResampleRateId = 6,    // Regret
     kPlaybackRateId = 7,    // Sorrow
+    kHarmonizeId = 8,    // Choir
 
 // --- AUTO-GENERATED END
 

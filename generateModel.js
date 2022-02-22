@@ -106,6 +106,13 @@ const MODEL = [
         ui: { x: 292, y: 346, w: 134, h: 21 },
         customDescr: 'sprintf( text, "%.2d %%", ( int ) (( valueNormalized * ( 100.f * Igorski::PluginProcess::MIN_PLAYBACK_SPEED )) + ( Igorski::PluginProcess::MIN_PLAYBACK_SPEED * 100.f )));'
     },
+    {
+        name: 'harmonize',
+        descr: 'Choir',
+        unitDescr: '%',
+        value: { min: '0', max: '1', def: '0', type: 'bool' },
+        ui: { x: 299, y: 205, w: 104, h: 21 }
+    },
 ];
 
 // DO NOT CHANGE BELOW

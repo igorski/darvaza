@@ -118,6 +118,16 @@ namespace Calc {
                 return -round( 1.f / 16.f - (( float ) scaled - 3.f ));
         }
     }
+
+    // calculates the playback speed necessary to play back
+    // a sample to sound at the given pitch (in semitones) lower
+    // than the source. note that this implies the playback speed
+    // will be altered according to the rate (e.g. won't remain static)
+
+    inline float pitchDown( float semitones )
+    {
+        return ( float ) pow( 0.94387f, -semitones );
+    }
 }
 }
 

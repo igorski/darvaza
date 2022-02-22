@@ -96,6 +96,7 @@ class Darvaza : public AudioEffect
         float fLinkGates = 1;    // Link gates
         float fResampleRate = 1.f;    // Regret
         float fPlaybackRate = 1.f;    // Sorrow
+        float fHarmonize = 0;    // Choir
 
 // --- AUTO-GENERATED END
 
