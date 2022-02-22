@@ -27,6 +27,7 @@
 #include "audiobuffer.h"
 #include "bitcrusher.h"
 #include "limiter.h"
+#include "lowpassfilter.h"
 #include "reverb.h"
 #include "wavetable.h"
 #include <vector>
@@ -36,10 +37,18 @@ using namespace Steinberg;
 namespace Igorski {
 class PluginProcess {
 
-    static constexpr float MAX_RECORD_SECONDS = 30.f;
-    static constexpr float MIN_PLAYBACK_SPEED = .5f;
+    // dithering constants
+
+    const float DITHER_WORD_LENGTH = pow( 2.0, 15 );        // 15 implies 16-bit depth
+    const float DITHER_WI          = 1.0f / DITHER_WORD_LENGTH;
+    const float DITHER_DC_OFFSET   = DITHER_WI * 0.5f;      // apply in resampling routine to remove DC offset
+    const float DITHER_AMPLITUDE   = DITHER_WI / RAND_MAX;  // 2 LSB
 
     public:
+        static constexpr float MAX_RECORD_SECONDS = 30.f;
+        static constexpr float MIN_PLAYBACK_SPEED = .5f;
+        static constexpr float MIN_SAMPLE_RATE    = 2000.f;
+
         PluginProcess( int amountOfChannels );
         ~PluginProcess();
 
@@ -72,6 +81,9 @@ class PluginProcess {
         void resetReadWritePointers();
         void clearRecordBuffer();
 
+        void setPlaybackRate( float value );
+        void setResampleRate( float value );
+
         // child processors
 
         BitCrusher* bitCrusher;
@@ -79,6 +91,7 @@ class PluginProcess {
         Reverb* reverb;
 
     private:
+        int _amountOfChannels;
         std::vector<WaveTable*> _waveTables;
 
         AudioBuffer* _recordBuffer; // buffer used to record incoming signal
@@ -90,16 +103,37 @@ class PluginProcess {
         int _writePointer        = 0;
         int _maxRecordBufferSize = 0;
 
-        int _amountOfChannels;
+        // cached values for sample accurate calculation of relevant musical positions
+
         int _writtenMeasureSamples = 0;
         int _fullMeasureSamples    = 0;
         int _beatSamples           = 0;
         int _sixteenthSamples      = 0;
 
+        // tempo related
+
         double _tempo;
         int32 _timeSigNumerator;
         int32 _timeSigDenominator;
         float _fullMeasureDuration;
+
+        // related to playback of precorded content (when downsampling or playing at reduced speed)
+
+        float* _lastSamples; // last written sample, per channel
+        float _downSampleAmount = 0.f; // 1 == no change (original sample rate), > 1 provides down sampling
+        float _maxDownSample;
+        float _playbackRate = MIN_PLAYBACK_SPEED; // 1 == 100% (no change), < 1 is lower playback speed
+        float _fSampleIncr;
+        int   _sampleIncr;
+        std::vector<LowPassFilter*> _lowPassFilters;
+
+        inline bool isSlowedDown() {
+            return _playbackRate < 1.f;
+        }
+
+        inline bool isDownSampled() {
+            return _downSampleAmount > 1.f;
+        }
 
         void clearGateTables();
         float _gateTableType = -1.f;

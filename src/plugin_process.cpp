@@ -30,6 +30,8 @@ namespace Igorski {
 PluginProcess::PluginProcess( int amountOfChannels ) {
     _amountOfChannels = amountOfChannels;
 
+    _maxDownSample = VST::SAMPLE_RATE / MIN_SAMPLE_RATE;
+
     // cache the waveforms (as sample rate is known to be accurate on PluginProcess construction)
 
     TablePool::setTable( WaveGenerator::generate( 512, WaveGenerator::WaveForms::SINE ),     WaveGenerator::WaveForms::SINE );
@@ -46,11 +48,21 @@ PluginProcess::PluginProcess( int amountOfChannels ) {
     _timeSigNumerator    = 4;
     _timeSigDenominator  = 4;
 
+    setPlaybackRate( 1.f );
+    setResampleRate( 1.f );
+
     // create the child processors
 
     bitCrusher = new BitCrusher( 8, .5f, .5f );
     limiter    = new Limiter( 10.f, 500.f, .6f );
     reverb     = new Reverb();
+
+    _lastSamples = new float[ amountOfChannels ];
+
+    for ( int i = 0; i < amountOfChannels; ++i ) {
+        _lastSamples[ i ] = 0.f;
+        _lowPassFilters.push_back( new LowPassFilter());
+    }
 
     // will be lazily created in the process function
     _recordBuffer = nullptr;
@@ -61,6 +73,13 @@ PluginProcess::~PluginProcess() {
     delete bitCrusher;
     delete limiter;
     delete reverb;
+
+    delete[] _lastSamples;
+
+    while ( _lowPassFilters.size() > 0 ) {
+        delete _lowPassFilters.at( 0 );
+        _lowPassFilters.erase( _lowPassFilters.begin() );
+    }
 
     delete _preMixBuffer;
     delete _recordBuffer;
@@ -97,6 +116,56 @@ void PluginProcess::clearRecordBuffer()
 {
     if ( _recordBuffer != nullptr ) {
         _recordBuffer->silenceBuffers();
+    }
+}
+
+void PluginProcess::setResampleRate( float value )
+{
+    // invert the sampling rate value to determine the down sampling value
+    float downSampleValue = abs( value - 1.f );
+    float scaledAmount    = Calc::scale( downSampleValue, 1.f, _maxDownSample - 1.f ) + 1.f;
+
+    if ( scaledAmount == _downSampleAmount ) {
+        return; // don't trigger changes if value is the same
+    }
+    bool wasDownSampled = isDownSampled();
+    _downSampleAmount   = scaledAmount;
+
+    _fSampleIncr = std::max( 1.f, floor( _downSampleAmount ));
+    _sampleIncr  = ( int ) _fSampleIncr;
+
+    // update the lowpass filters to the appropriate cutoff
+
+    float ratio = 1.f + ( _downSampleAmount / _maxDownSample );
+    for ( auto lowPassFilter : _lowPassFilters ) {
+        lowPassFilter->setRatio( ratio );
+    }
+
+    // if down sampling is deactivated and there is no playback slowdown taking place:
+    // sync the read pointer with the write pointer
+
+    if ( wasDownSampled && !isDownSampled() && !isSlowedDown() ) {
+        _readPointer = ( float ) _writePointer;
+    }
+}
+
+void PluginProcess::setPlaybackRate( float value )
+{
+    // rate is in 0 - 1 range, playback rate speed support is between 0.5 (half speed) - 1.0f (full speed)
+    float scaledAmount = Calc::scale( value, 1, MIN_PLAYBACK_SPEED ) + MIN_PLAYBACK_SPEED;
+
+    if ( scaledAmount == _playbackRate ) {
+        return; // don't trigger changes if value is the same
+    }
+
+    bool wasSlowedDown = isSlowedDown();
+    _playbackRate      = scaledAmount;
+
+    // if slowdown is deactivated and there is no down sampling taking place:
+    // sync the read pointer with the write pointer
+
+    if ( wasSlowedDown && !isSlowedDown() && !isDownSampled() ) {
+        _readPointer = ( float ) _writePointer;
     }
 }
 

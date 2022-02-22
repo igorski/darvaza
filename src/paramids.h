@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Igor Zinken - https://www.igorski.nl
+ * Copyright (c) 2020-2022 Igor Zinken - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -35,6 +35,8 @@ enum
     kBitDepthId = 2,    // Torture
     kWaveformId = 3,    // Door
     kTypeId = 4,    // Evil
+    kResampleRateId = 5,    // Regret
+    kPlaybackRateId = 6,    // Sorrow
 
 // --- AUTO-GENERATED END
 
