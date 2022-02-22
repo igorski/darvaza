@@ -35,8 +35,9 @@ enum
     kBitDepthId = 2,    // Torture
     kWaveformId = 3,    // Door
     kReverbId = 4,    // Evil
-    kResampleRateId = 5,    // Regret
-    kPlaybackRateId = 6,    // Sorrow
+    kLinkGatesId = 5,    // Link gates
+    kResampleRateId = 6,    // Regret
+    kPlaybackRateId = 7,    // Sorrow
 
 // --- AUTO-GENERATED END
 

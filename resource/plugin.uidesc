@@ -47,7 +47,7 @@
 
         <!-- Door -->
         <view control-tag="Unit1::waveformParam" class="CSlider" origin="249, 205" size="104, 21"
-              max-value="1.f" min-value="0.f" default-value="1.f"
+              max-value="1.f" min-value="0.f" default-value="0.f"
               background-offset="0, 0" bitmap="slider_background"
               bitmap-offset="0, 0" draw-back="false" draw-back-color="~ WhiteCColor" draw-frame="false"
               draw-frame-color="~ WhiteCColor" draw-value="false" draw-value-color="~ WhiteCColor" draw-value-from-center="false"
@@ -65,6 +65,17 @@
               autosize-to-fit="false" frame-width="1"
               mouse-enabled="true" opacity="1" round-rect-radius="0"
               title="Evil" transparent="false" wants-focus="true" wheel-inc-value="0.1"
+        />
+
+        <!-- Link gates -->
+        <view control-tag="Unit1::linkGatesParam" class="CCheckBox" origin="299, 205" size="104, 21"
+              max-value="1" min-value="0" default-value="1"
+              background-offset="0, 0" boxfill-color="~ GreenCColor" autosize="bottom"
+              boxframe-color="~ BlackCColor" checkmark-color="~ BlackCColor"
+              draw-crossbox="true" font="~ NormalFontSmall" font-color="Light Grey"
+              autosize-to-fit="false" frame-width="1"
+              mouse-enabled="true" opacity="1" round-rect-radius="0"
+              title="Link gates" transparent="false" wants-focus="true" wheel-inc-value="0.1"
         />
 
         <!-- Regret -->
@@ -132,8 +143,9 @@
        <control-tag name="Unit1::bitDepthParam" tag="2" />
        <control-tag name="Unit1::waveformParam" tag="3" />
        <control-tag name="Unit1::reverbParam" tag="4" />
-       <control-tag name="Unit1::resampleRateParam" tag="5" />
-       <control-tag name="Unit1::playbackRateParam" tag="6" />
+       <control-tag name="Unit1::linkGatesParam" tag="5" />
+       <control-tag name="Unit1::resampleRateParam" tag="6" />
+       <control-tag name="Unit1::playbackRateParam" tag="7" />
 
 <!-- AUTO-GENERATED TAGS END -->
     </control-tags>

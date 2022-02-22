@@ -153,6 +153,11 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
                             fReverb = ( float ) value;
                         break;
 
+                    case kLinkGatesId:
+                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
+                            fLinkGates = ( float ) value;
+                        break;
+
                     case kResampleRateId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
                             fResampleRate = ( float ) value;
@@ -192,8 +197,9 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
         }
 
         pluginProcess->setTempo(
-            data.processContext->tempo, data.processContext->timeSigNumerator, data.processContext->timeSigDenominator,
-            fEvenSpeed, fOddSpeed
+            data.processContext->tempo,
+            data.processContext->timeSigNumerator, data.processContext->timeSigDenominator,
+            fOddSpeed, fEvenSpeed
         );
     }
 
@@ -295,6 +301,10 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
     if ( state->read( &savedReverb, sizeof ( float )) != kResultOk )
         return kResultFalse;
 
+    float savedLinkGates = 0.f;
+    if ( state->read( &savedLinkGates, sizeof ( float )) != kResultOk )
+        return kResultFalse;
+
     float savedResampleRate = 0.f;
     if ( state->read( &savedResampleRate, sizeof ( float )) != kResultOk )
         return kResultFalse;
@@ -313,6 +323,7 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
    SWAP_32( savedBitDepth )
    SWAP_32( savedWaveform )
    SWAP_32( savedReverb )
+   SWAP_32( savedLinkGates )
    SWAP_32( savedResampleRate )
    SWAP_32( savedPlaybackRate )
 
@@ -326,6 +337,7 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
     fBitDepth = savedBitDepth;
     fWaveform = savedWaveform;
     fReverb = savedReverb;
+    fLinkGates = savedLinkGates;
     fResampleRate = savedResampleRate;
     fPlaybackRate = savedPlaybackRate;
 
@@ -377,6 +389,7 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
     float toSaveBitDepth = fBitDepth;
     float toSaveWaveform = fWaveform;
     float toSaveReverb = fReverb;
+    float toSaveLinkGates = fLinkGates;
     float toSaveResampleRate = fResampleRate;
     float toSavePlaybackRate = fPlaybackRate;
 
@@ -391,6 +404,7 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
    SWAP_32( toSaveBitDepth )
    SWAP_32( toSaveWaveform )
    SWAP_32( toSaveReverb )
+   SWAP_32( toSaveLinkGates )
    SWAP_32( toSaveResampleRate )
    SWAP_32( toSavePlaybackRate )
 
@@ -404,6 +418,7 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
     state->write( &toSaveBitDepth, sizeof( float ));
     state->write( &toSaveWaveform, sizeof( float ));
     state->write( &toSaveReverb, sizeof( float ));
+    state->write( &toSaveLinkGates, sizeof( float ));
     state->write( &toSaveResampleRate, sizeof( float ));
     state->write( &toSavePlaybackRate, sizeof( float ));
 
@@ -534,7 +549,7 @@ void Darvaza::syncModel()
     // forward the protected model values onto the plugin process and related processors
     // NOTE: when dealing with "bool"-types, use Calc::toBool() to determine on/off
     pluginProcess->createGateTables( fWaveform ); // should come before gate speed updates
-    pluginProcess->setGateSpeed( fEvenSpeed, fOddSpeed );
+    pluginProcess->setGateSpeed( fOddSpeed, Calc::toBool( fLinkGates ) ? fOddSpeed : fEvenSpeed );
     pluginProcess->bitCrusher->setAmount( fBitDepth );
     pluginProcess->setResampleRate( fResampleRate );
     pluginProcess->setPlaybackRate( fPlaybackRate );

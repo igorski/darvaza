@@ -103,13 +103,17 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
 
     RangeParameter* waveformParam = new RangeParameter(
         USTRING( "Door" ), kWaveformId, USTRING( "%" ),
-        0.f, 1.f, 1.f,
+        0.f, 1.f, 0.f,
         0, ParameterInfo::kCanAutomate, unitId
     );
     parameters.addParameter( waveformParam );
 
     parameters.addParameter(
         USTRING( "Evil" ), 0, 1, 0, ParameterInfo::kCanAutomate, kReverbId, unitId
+    );
+
+    parameters.addParameter(
+        USTRING( "Link gates" ), 0, 1, 1, ParameterInfo::kCanAutomate, kLinkGatesId, unitId
     );
 
     RangeParameter* resampleRateParam = new RangeParameter(
@@ -170,6 +174,10 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         if ( state->read( &savedReverb, sizeof( float )) != kResultOk )
             return kResultFalse;
 
+        float savedLinkGates = 1.f;
+        if ( state->read( &savedLinkGates, sizeof( float )) != kResultOk )
+            return kResultFalse;
+
         float savedResampleRate = 1.f;
         if ( state->read( &savedResampleRate, sizeof( float )) != kResultOk )
             return kResultFalse;
@@ -188,6 +196,7 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
     SWAP_32( savedBitDepth )
     SWAP_32( savedWaveform )
     SWAP_32( savedReverb )
+    SWAP_32( savedLinkGates )
     SWAP_32( savedResampleRate )
     SWAP_32( savedPlaybackRate )
 
@@ -200,6 +209,7 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         setParamNormalized( kBitDepthId, savedBitDepth );
         setParamNormalized( kWaveformId, savedWaveform );
         setParamNormalized( kReverbId, savedReverb );
+        setParamNormalized( kLinkGatesId, savedLinkGates );
         setParamNormalized( kResampleRateId, savedResampleRate );
         setParamNormalized( kPlaybackRateId, savedPlaybackRate );
 
@@ -358,6 +368,11 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
             return kResultTrue;
 
         case kReverbId:
+            sprintf( text, "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
+            Steinberg::UString( string, 128 ).fromAscii( text );
+            return kResultTrue;
+
+        case kLinkGatesId:
             sprintf( text, "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;

@@ -73,7 +73,7 @@ const MODEL = [
         name: 'waveform',
         descr: 'Door',
         unitDescr: '%',
-        value: { min: '0.f', max: '1.f', def: '1.f', type: 'percent' },
+        value: { min: '0.f', max: '1.f', def: '0.f', type: 'percent' },
         ui: { x: 249, y: 205, w: 104, h: 21 }
     },
     {
@@ -81,6 +81,13 @@ const MODEL = [
         descr: 'Evil',
         unitDescr: '%',
         value: { min: '0', max: '1', def: '0', type: 'bool' },
+        ui: { x: 299, y: 205, w: 104, h: 21 }
+    },
+    {
+        name: 'linkGates',
+        descr: 'Link gates',
+        unitDescr: '%',
+        value: { min: '0', max: '1', def: '1', type: 'bool' },
         ui: { x: 299, y: 205, w: 104, h: 21 }
     },
     {

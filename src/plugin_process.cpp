@@ -100,11 +100,11 @@ PluginProcess::~PluginProcess() {
 
 /* setters */
 
-void PluginProcess::setGateSpeed( float evenSteps, float oddSteps )
+void PluginProcess::setGateSpeed( float oddSteps, float evenSteps )
 {
     // (1.f / measureDuration value) converts seconds to cycles in Hertz
-    float evenValue = 1.f / ( _fullMeasureDuration / Calc::gateSubdivision( evenSteps ));
     float oddValue  = 1.f / ( _fullMeasureDuration / Calc::gateSubdivision( oddSteps ));
+    float evenValue = 1.f / ( _fullMeasureDuration / Calc::gateSubdivision( evenSteps ));
 
     for ( size_t i = 0; i < _amountOfChannels; ++i ) {
         _waveTables.at( i )->setFrequency(( i + 1 ) % 2 == 0 ? evenValue : oddValue );
@@ -184,7 +184,7 @@ void PluginProcess::enableReverb( bool enabled )
 
 /* other */
 
-void PluginProcess::setTempo( double tempo, int32 timeSigNumerator, int32 timeSigDenominator, float evenSteps, float oddSteps )
+void PluginProcess::setTempo( double tempo, int32 timeSigNumerator, int32 timeSigDenominator, float oddSteps, float evenSteps )
 {
     if ( _tempo == tempo && _timeSigNumerator == timeSigNumerator && _timeSigDenominator == timeSigDenominator ) {
         return; // no change
@@ -199,7 +199,7 @@ void PluginProcess::setTempo( double tempo, int32 timeSigNumerator, int32 timeSi
     _timeSigDenominator = timeSigDenominator;
     _tempo              = tempo;
 
-    setGateSpeed( evenSteps, oddSteps );
+    setGateSpeed( oddSteps, evenSteps );
 }
 
 void PluginProcess::createGateTables( float normalizedWaveFormType ) {
