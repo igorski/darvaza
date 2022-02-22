@@ -173,7 +173,9 @@ void PluginProcess::setResampleRate( float value )
 void PluginProcess::setPlaybackRate( float value )
 {
     // rate is in 0 - 1 range, playback rate speed support is between 0.5 (half speed) - 1.0f (full speed)
-    float scaledAmount = Calc::scale( value, 1, MIN_PLAYBACK_SPEED ) + MIN_PLAYBACK_SPEED;
+    // note we invert the value as a higher value should imply a higher slowdown
+
+    float scaledAmount = Calc::scale( abs( value - 1.f ), 1, MIN_PLAYBACK_SPEED ) + MIN_PLAYBACK_SPEED;
 
     if ( scaledAmount == _playbackRate ) {
         return; // don't trigger changes if value is the same

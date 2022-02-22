@@ -65,7 +65,8 @@ void BitCrusher::process( float* inBuffer, int bufferSize )
 
 void BitCrusher::setAmount( float value )
 {
-    _amount = value;
+    // note we invert the value as a higher value implies less bit rate reduction
+    _amount = abs( value - 1.f );
 
     calcBits();
 }

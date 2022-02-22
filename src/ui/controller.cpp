@@ -96,7 +96,7 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
 
     RangeParameter* bitDepthParam = new RangeParameter(
         USTRING( "Torture" ), kBitDepthId, USTRING( "%" ),
-        0.f, 1.f, 1.f,
+        0.f, 1.f, 0.f,
         0, ParameterInfo::kCanAutomate, unitId
     );
     parameters.addParameter( bitDepthParam );
@@ -125,7 +125,7 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
 
     RangeParameter* playbackRateParam = new RangeParameter(
         USTRING( "Sorrow" ), kPlaybackRateId, USTRING( "%" ),
-        0.f, 1.f, 1.f,
+        0.f, 1.f, 0.f,
         0, ParameterInfo::kCanAutomate, unitId
     );
     parameters.addParameter( playbackRateParam );
@@ -368,7 +368,7 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
             return kResultTrue;
 
         case kBitDepthId:
-            sprintf( text, "%.d Bits", ( int ) ( 15 * valueNormalized ) + 1 );
+            sprintf( text, "%.d Bits", ( int ) ( 15 * abs( valueNormalized - 1.f )) + 1 );
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
@@ -393,7 +393,7 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
             return kResultTrue;
 
         case kPlaybackRateId:
-            sprintf( text, "%.2d %%", ( int ) (( valueNormalized * ( 100.f * Igorski::PluginProcess::MIN_PLAYBACK_SPEED )) + ( Igorski::PluginProcess::MIN_PLAYBACK_SPEED * 100.f )));
+            sprintf( text, "%.2d %%", ( int ) (( abs( valueNormalized - 1.f ) * ( 100.f * Igorski::PluginProcess::MIN_PLAYBACK_SPEED )) + ( Igorski::PluginProcess::MIN_PLAYBACK_SPEED * 100.f )));
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
