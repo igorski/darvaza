@@ -28,6 +28,8 @@ template <typename SampleType>
 void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int numInChannels, int numOutChannels,
                              int bufferSize, uint32 sampleFramesSize ) {
 
+    ScopedNoDenormals noDenormals;
+
     // input and output buffers can be float or double as defined
     // by the templates SampleType value. Internally we process
     // audio as floats
@@ -170,7 +172,7 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
             // blend in the effect mix buffer for the gates value
 
-            channelOutBuffer[ i ] = ( SampleType ) ( tmpSample * gateLevel );
+            channelOutBuffer[ i ] = ( SampleType ) ( tmpSample ) * gateLevel;
 
             // blend in the dry signal (mixed to the negative of the gated signal)
 

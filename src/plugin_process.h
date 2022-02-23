@@ -31,6 +31,7 @@
 #include "reverb.h"
 #include "wavegenerator.h"
 #include "wavetable.h"
+#include "snd.h"
 #include <vector>
 
 using namespace Steinberg;

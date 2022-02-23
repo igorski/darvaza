@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Igor Zinken - https://www.igorski.nl
+ * Copyright (c) 2020-2022 Igor Zinken - https://www.igorski.nl
  *
  * Adaptation of source provided in the JUCE library:
  * Copyright (c) 2020 - Raw Material Software Limited
@@ -50,7 +50,8 @@ class LowPassFilter
             y2 = y1;
             y1 = out;
 
-            return out;
+            // catch those pesky denormals
+            return ( fabs( out ) < 1.0e-10 ) ? 0.0f : out;
         }
 
     private:
