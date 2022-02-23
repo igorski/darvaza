@@ -140,9 +140,7 @@ void PluginProcess::clearRecordBuffer()
 
 void PluginProcess::setResampleRate( float value )
 {
-    // invert the sampling rate value to determine the down sampling value
-    float downSampleValue = abs( value - 1.f );
-    float scaledAmount    = Calc::scale( downSampleValue, 1.f, _maxDownSample - 1.f ) + 1.f;
+    float scaledAmount = Calc::scale( value, 1.f, _maxDownSample - 1.f ) + 1.f;
 
     if ( scaledAmount == _downSampleAmount ) {
         return; // don't trigger changes if value is the same

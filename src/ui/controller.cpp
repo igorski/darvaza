@@ -117,8 +117,8 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
     );
 
     RangeParameter* resampleRateParam = new RangeParameter(
-        USTRING( "Regret" ), kResampleRateId, USTRING( "%" ),
-        0.f, 1.f, 1.f,
+        USTRING( "Regret" ), kResampleRateId, USTRING( "Hz" ),
+        0.f, 1.f, 0.f,
         0, ParameterInfo::kCanAutomate, unitId
     );
     parameters.addParameter( resampleRateParam );
@@ -388,7 +388,7 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
             return kResultTrue;
 
         case kResampleRateId:
-            sprintf( text, "%.2d Hz", ( int ) (( Igorski::VST::SAMPLE_RATE - Igorski::PluginProcess::MIN_SAMPLE_RATE ) * valueNormalized ) + ( int ) Igorski::PluginProcess::MIN_SAMPLE_RATE );
+            sprintf( text, "%.2d Hz", ( int ) (( Igorski::VST::SAMPLE_RATE - Igorski::PluginProcess::MIN_SAMPLE_RATE ) * abs( valueNormalized - 1.f )) + ( int ) Igorski::PluginProcess::MIN_SAMPLE_RATE );
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 

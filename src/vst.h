@@ -94,7 +94,7 @@ class Darvaza : public AudioEffect
         float fWaveform = 0.f;    // Door
         float fReverb = 0;    // Evil
         float fLinkGates = 1;    // Link gates
-        float fResampleRate = 1.f;    // Regret
+        float fResampleRate = 0.f;    // Regret
         float fPlaybackRate = 0.f;    // Sorrow
         float fHarmonize = 0;    // Choir
 

@@ -48,6 +48,9 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
     bool playFromRecordBuffer = isSlowedDown() || isDownSampled();
 
+    // if there are no effects, don't mix in the dry signal (instead function as classic gate)
+    bool mixDry = playFromRecordBuffer || _reverbEnabled || bitCrusher->isActive();
+
     for ( int32 c = 0; c < numInChannels; ++c )
     {
         readPointer  = _readPointers[ c ];
@@ -175,8 +178,9 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
             channelOutBuffer[ i ] = ( SampleType ) ( tmpSample ) * gateLevel;
 
             // blend in the dry signal (mixed to the negative of the gated signal)
-
-            channelOutBuffer[ i ] += ( channelInBuffer[ i ] * ( 1.0 - gateLevel ));
+            if ( mixDry ) {
+                channelOutBuffer[ i ] += ( channelInBuffer[ i ] * ( 1.0 - gateLevel ));
+            }
         }
         // end of processing for channel
 

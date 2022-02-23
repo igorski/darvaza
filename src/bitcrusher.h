@@ -36,6 +36,10 @@ class BitCrusher {
         void setInputMix( float value );
         void setOutputMix( float value );
 
+        inline bool isActive() {
+            return _bits != 16;
+        }
+
     private:
         int _bits; // we scale the amount to integers in the 1-16 range
         float _amount;
