@@ -65,7 +65,10 @@ namespace WaveGenerator
 
         int tempValue, partials;
         float frequency, gibbs, sample, tmp, maxValue;
-        float power, baseFrequency = 440, nyquist = ( float ) VST::SAMPLE_RATE / 2.0;
+        float power, baseFrequency = 440;
+        // note we cap the max sample rate (the Steinberg validator test goes into million Hz territory...)
+        // for now it's safe to assume no VST will be used in gHz sampling rate projects...
+        float nyquist = fminf( 384000.f, VST::SAMPLE_RATE  ) / 2.f;
 
         // every other MIDI note (127 values)
         for ( int i = -69; i <= 58; i += 2 )

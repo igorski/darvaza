@@ -29,8 +29,7 @@ namespace Igorski {
 
 PluginProcess::PluginProcess( int amountOfChannels ) {
     _amountOfChannels = amountOfChannels;
-
-    _maxDownSample = VST::SAMPLE_RATE / MIN_SAMPLE_RATE;
+    _maxDownSample    = VST::SAMPLE_RATE / MIN_SAMPLE_RATE;
 
     // cache the waveforms (as sample rate is known to be accurate on PluginProcess construction)
 
@@ -39,14 +38,14 @@ PluginProcess::PluginProcess( int amountOfChannels ) {
     TablePool::setTable( WaveGenerator::generate( WaveGenerator::WaveForms::SAWTOOTH ), WaveGenerator::WaveForms::SAWTOOTH );
     TablePool::setTable( WaveGenerator::generate( WaveGenerator::WaveForms::SQUARE ),   WaveGenerator::WaveForms::SQUARE );
 
-    createGateTables( WaveGenerator::WaveForms::TRIANGLE );
+    _gateWaveForm = WaveGenerator::WaveForms::SINE;
+    for ( size_t i = 0; i < _amountOfChannels; ++i ) {
+        _waveTables.push_back( TablePool::getTable( _gateWaveForm )->clone() );
+    }
 
     // these will be synced to host, see vst.cpp. here we default to 120 BPM in 4/4 time
 
-    _tempo               = 120.f;
-    _fullMeasureDuration = 2.f;
-    _timeSigNumerator    = 4;
-    _timeSigDenominator  = 4;
+    setTempo( 120.0, 4, 4 );
 
     // child processors that can work on any audio channel
     // (e.g. don't maintain the last channel-specific state)
@@ -125,7 +124,10 @@ void PluginProcess::resetReadWritePointers()
     for ( size_t i = 0; i < _amountOfChannels; ++i ) {
         _readPointers[ i ] = 0.f;
     }
+}
 
+void PluginProcess::resetGates()
+{
     for ( auto waveTable : _waveTables ) {
         waveTable->setAccumulator( 0 );
     }
@@ -203,22 +205,22 @@ void PluginProcess::enableHarmonize( bool enabled )
 
 /* other */
 
-void PluginProcess::setTempo( double tempo, int32 timeSigNumerator, int32 timeSigDenominator, float oddSteps, float evenSteps )
+bool PluginProcess::setTempo( double tempo, int32 timeSigNumerator, int32 timeSigDenominator )
 {
     if ( _tempo == tempo && _timeSigNumerator == timeSigNumerator && _timeSigDenominator == timeSigDenominator ) {
-        return; // no change
+        return false; // no change
     }
+
+    _timeSigNumerator   = timeSigNumerator;
+    _timeSigDenominator = timeSigDenominator;
+    _tempo              = tempo;
 
     _fullMeasureDuration = ( 60.f / _tempo ) * _timeSigDenominator; // seconds per measure
     _fullMeasureSamples  = Calc::secondsToBuffer( _fullMeasureDuration );
     _beatSamples         = ceil( _fullMeasureSamples / _timeSigDenominator );
     _sixteenthSamples    = ceil( _fullMeasureSamples / 16 );
 
-    _timeSigNumerator   = timeSigNumerator;
-    _timeSigDenominator = timeSigDenominator;
-    _tempo              = tempo;
-
-    setGateSpeed( oddSteps, evenSteps );
+    return true;
 }
 
 void PluginProcess::createGateTables( float normalizedWaveFormType ) {

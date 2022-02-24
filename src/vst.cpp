@@ -192,6 +192,7 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
 
         if ( !wasPlaying && isPlaying ) {
             pluginProcess->resetReadWritePointers();
+            pluginProcess->resetGates();
         }
 
         // clear the record buffers on sequencer start / stop to prevent slowed down playback from
@@ -201,11 +202,10 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
             pluginProcess->clearRecordBuffer();
         }
 
-        pluginProcess->setTempo(
-            data.processContext->tempo,
-            data.processContext->timeSigNumerator, data.processContext->timeSigDenominator,
-            fOddSpeed, fEvenSpeed
-        );
+        if ( pluginProcess->setTempo( data.processContext->tempo,
+            data.processContext->timeSigNumerator, data.processContext->timeSigDenominator )) {
+            pluginProcess->setGateSpeed( fOddSpeed, fEvenSpeed );
+        }
     }
 
     //---2) Read input events-------------

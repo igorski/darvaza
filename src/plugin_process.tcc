@@ -28,6 +28,10 @@ template <typename SampleType>
 void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int numInChannels, int numOutChannels,
                              int bufferSize, uint32 sampleFramesSize ) {
 
+    if ( bufferSize <= 0 ) {
+        return; // Variable Block Size unit test
+    }
+
     ScopedNoDenormals noDenormals;
 
     // input and output buffers can be float or double as defined
@@ -200,6 +204,14 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 template <typename SampleType>
 void PluginProcess::prepareMixBuffers( SampleType** inBuffer, int numInChannels, int bufferSize )
 {
+    // variable block size for a smaller block should not require new record buffers
+    // only create these when the last size was smaller than the current
+    if ( bufferSize <= _lastBufferSize ) {
+        return;
+    }
+
+    _lastBufferSize = bufferSize;
+
     // if the record buffer wasn't created yet or the buffer size has changed
     // delete existing buffer and create new one to match properties
 
@@ -210,6 +222,7 @@ void PluginProcess::prepareMixBuffers( SampleType** inBuffer, int numInChannels,
         delete _recordBuffer;
         _recordBuffer = new AudioBuffer( numInChannels, recordSize );
         _maxRecordBufferSize = recordSize;
+        resetReadWritePointers();
     }
 
     // if the pre mix buffer wasn't created yet or the buffer size has changed

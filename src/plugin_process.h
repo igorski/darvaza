@@ -69,8 +69,9 @@ class PluginProcess {
 
         // synchronize the gate tempo with the host
         // tempo is in BPM, time signature provided as: timeSigNumerator / timeSigDenominator (e.g. 3/4)
+        // returns true when tempo has updated, false to indicate no change was made
 
-        void setTempo( double tempo, int32 timeSigNumerator, int32 timeSigDenominator, float oddSteps, float evenSteps );
+        bool setTempo( double tempo, int32 timeSigNumerator, int32 timeSigDenominator );
 
         // resets gate envelope to 0 position (e.g. on sequencer stop/start)
 
@@ -81,6 +82,7 @@ class PluginProcess {
         void createGateTables( float normalizedWaveFormType );
 
         void resetReadWritePointers();
+        void resetGates();
         void clearRecordBuffer();
 
         void setPlaybackRate( float value );
@@ -100,6 +102,7 @@ class PluginProcess {
 
         AudioBuffer* _recordBuffer; // buffer used to record incoming signal
         AudioBuffer* _preMixBuffer; // buffer used for the pre effect mixing
+        int _lastBufferSize = 0;    // size of the last buffer used when generating the _recordBuffer
 
         bool _reverbEnabled = false;
 
@@ -121,9 +124,9 @@ class PluginProcess {
 
         // tempo related
 
-        double _tempo;
-        int32 _timeSigNumerator;
-        int32 _timeSigDenominator;
+        double _tempo             = 0.0;
+        int32 _timeSigNumerator   = 0;
+        int32 _timeSigDenominator = 0;
         float _fullMeasureDuration;
 
         // related to playback of precorded content (when downsampling or playing at reduced speed)
