@@ -23,17 +23,45 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #include "wavegenerator.h"
+#include "waveforms.h"
 #include <math.h>
 #include <cmath>
+
+using namespace Igorski::VST;
 
 namespace Igorski {
 namespace WaveGenerator
 {
-    WaveTable* generate( int tableSize, WaveForms waveformType )
+    WaveTable* generate( WaveForms waveformType )
     {
-        WaveTable* waveTable = new WaveTable( tableSize, 440.f );
+        WaveTable* waveTable = new WaveTable( TABLE_SIZE, 440.f );
 
         float* outputBuffer = waveTable->getBuffer();
+
+        if ( VST::SAMPLE_RATE <= ( WAVEFORM_CACHE_SAMPLE_RATE * 2 )) {
+            // when the sample rate is in roughly the same ballpark as the cached tables we
+            // just assign the cached contents directly to the WaveTable and skip runtime
+            // rendering (as it is CPU heavy)
+            auto waveformTable = TABLE_SINE;
+            switch ( waveformType ) {
+                default:
+                    break;
+                case WaveForms::TRIANGLE:
+                    waveformTable = TABLE_TRIANGLE;
+                    break;
+                case WaveForms::SAWTOOTH:
+                    waveformTable = TABLE_SAW;
+                    break;
+                case WaveForms::SQUARE:
+                    waveformTable = TABLE_SQUARE;
+                    break;
+            }
+
+            for ( int i = 0; i < TABLE_SIZE; i++ ) {
+                outputBuffer[ i ] = waveformTable[ i ];
+            }
+            return waveTable;
+        }
 
         int tempValue, partials;
         float frequency, gibbs, sample, tmp, maxValue;
@@ -48,7 +76,7 @@ namespace WaveGenerator
             partials    = nyquist / frequency;
             maxValue    = 0.0;
 
-            for ( int t = 0; t < tableSize; t++ )
+            for ( int t = 0; t < TABLE_SIZE; t++ )
             {
                 sample = 0.0, tmp = 0.0;
 
@@ -63,23 +91,23 @@ namespace WaveGenerator
                     switch ( waveformType )
                     {
                         case WaveForms::SINE:
-                            sample += gibbs * sin(( float ) s * VST::TWO_PI * ( float ) t / tableSize );
+                            sample += gibbs * sin(( float ) s * VST::TWO_PI * ( float ) t / TABLE_SIZE );
                             tmp     = sample;
                             break;
 
                         case WaveForms::TRIANGLE:
-                            sample += sin(( float ) s * VST::TWO_PI * ( float ) t / tableSize );
+                            sample += sin(( float ) s * VST::TWO_PI * ( float ) t / TABLE_SIZE );
                             tmp     = 1.0 - ( float ) ( std::abs( sample - 0.5 )) * 4.0;
                             break;
 
                         case WaveForms::SAWTOOTH:
-                            sample += gibbs * ( 1.0 / ( float ) s ) * sin(( float ) s * VST::TWO_PI * ( float ) t / tableSize );
+                            sample += gibbs * ( 1.0 / ( float ) s ) * sin(( float ) s * VST::TWO_PI * ( float ) t / TABLE_SIZE );
                             tmp     = sample;
                             break;
 
                         case WaveForms::SQUARE:
                             // regular sine generation
-                            sample += gibbs * sin(( float ) s * VST::TWO_PI * ( float ) t / tableSize );
+                            sample += gibbs * sin(( float ) s * VST::TWO_PI * ( float ) t / TABLE_SIZE );
                             // snap to extremes
                             tmp = ( sample >= 0.0 ) ? 1.0 : -1.0;
                             break;
@@ -93,7 +121,7 @@ namespace WaveGenerator
             // normalize values
             if ( waveformType != WaveForms::SQUARE ) {
                 float factor = 1.0 / maxValue;
-                for ( int j = 0; j < tableSize; ++j ) {
+                for ( int j = 0; j < TABLE_SIZE; ++j ) {
                     outputBuffer[ j ] *= factor;
                 }
             }

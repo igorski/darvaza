@@ -34,10 +34,10 @@ PluginProcess::PluginProcess( int amountOfChannels ) {
 
     // cache the waveforms (as sample rate is known to be accurate on PluginProcess construction)
 
-    TablePool::setTable( WaveGenerator::generate( 512, WaveGenerator::WaveForms::SINE ),     WaveGenerator::WaveForms::SINE );
-    TablePool::setTable( WaveGenerator::generate( 512, WaveGenerator::WaveForms::TRIANGLE ), WaveGenerator::WaveForms::TRIANGLE );
-    TablePool::setTable( WaveGenerator::generate( 512, WaveGenerator::WaveForms::SAWTOOTH ), WaveGenerator::WaveForms::SAWTOOTH );
-    TablePool::setTable( WaveGenerator::generate( 512, WaveGenerator::WaveForms::SQUARE ),   WaveGenerator::WaveForms::SQUARE );
+    TablePool::setTable( WaveGenerator::generate( WaveGenerator::WaveForms::SINE ),     WaveGenerator::WaveForms::SINE );
+    TablePool::setTable( WaveGenerator::generate( WaveGenerator::WaveForms::TRIANGLE ), WaveGenerator::WaveForms::TRIANGLE );
+    TablePool::setTable( WaveGenerator::generate( WaveGenerator::WaveForms::SAWTOOTH ), WaveGenerator::WaveForms::SAWTOOTH );
+    TablePool::setTable( WaveGenerator::generate( WaveGenerator::WaveForms::SQUARE ),   WaveGenerator::WaveForms::SQUARE );
 
     createGateTables( WaveGenerator::WaveForms::TRIANGLE );
 
