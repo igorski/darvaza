@@ -6,7 +6,14 @@
 
 # __PLUGIN_NAME__
 
-__PLUGIN_NAME__ is a VST/AU plug-in which provides... [description goes here]
+__PLUGIN_NAME__ is a VST/AU plug-in which provides a gating effect. The gate can use different waveforms
+and its speed is controllable across channels. The gates oscillators are synchronized to the host tempo
+and time signature. What sets the plugin apart from the usual oscillator based gates is that the functions
+using _quid pro quo_. When the gate closes on your input signal, you get a signal in return. This signal
+is based on your input, but a plethora of things have gone wrong with it.
+
+If you must know _exact details_, the returned sound can be time stretched, down sampled, reverberated and
+frozen or bit crushed. What you imagine is left of a soul after all Hell has chewed it out.
 
 ## On compatibility
 

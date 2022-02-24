@@ -33,10 +33,8 @@ const gateSubdivisionFormatFn = `
             } else if ( tmpValue == 1.f ) {
                 sprintf( text, "1 measure" );
             } else if ( tmpValue == 4.f ) {
-                sprintf( text, "quarter note" );
-            } else if ( tmpValue == 8.f ) {
-                sprintf( text, "%.fth note", tmpValue );
-            } else if ( tmpValue == 16.f ) {
+                sprintf( text, "Quarter note" );
+            } else if ( tmpValue == 8.f || tmpValue == 16.f ) {
                 sprintf( text, "%.fth note", tmpValue );
             } else {
                 sprintf( text, "1/%.f measure", tmpValue );
@@ -74,7 +72,17 @@ const MODEL = [
         descr: 'Door',
         unitDescr: '%',
         value: { min: '0.f', max: '1.f', def: '0.f', type: 'percent' },
-        ui: { x: 249, y: 205, w: 104, h: 21 }
+        ui: { x: 249, y: 205, w: 104, h: 21 },
+        customDescr:
+        `if ( valueNormalized >= 0.75f ) {
+                sprintf( text, "Square" );
+            } else if ( valueNormalized >= 0.5f ) {
+                sprintf( text, "Sawtooth" );
+            } else if ( valueNormalized >= 0.25f) {
+                sprintf( text, "Triangle" );
+            } else {
+                sprintf( text, "Sine" );
+            }`
     },
     {
         name: 'reverb',

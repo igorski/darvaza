@@ -337,10 +337,8 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
             } else if ( tmpValue == 1.f ) {
                 sprintf( text, "1 measure" );
             } else if ( tmpValue == 4.f ) {
-                sprintf( text, "quarter note" );
-            } else if ( tmpValue == 8.f ) {
-                sprintf( text, "%.fth note", tmpValue );
-            } else if ( tmpValue == 16.f ) {
+                sprintf( text, "Quarter note" );
+            } else if ( tmpValue == 8.f || tmpValue == 16.f ) {
                 sprintf( text, "%.fth note", tmpValue );
             } else {
                 sprintf( text, "1/%.f measure", tmpValue );
@@ -356,10 +354,8 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
             } else if ( tmpValue == 1.f ) {
                 sprintf( text, "1 measure" );
             } else if ( tmpValue == 4.f ) {
-                sprintf( text, "quarter note" );
-            } else if ( tmpValue == 8.f ) {
-                sprintf( text, "%.fth note", tmpValue );
-            } else if ( tmpValue == 16.f ) {
+                sprintf( text, "Quarter note" );
+            } else if ( tmpValue == 8.f || tmpValue == 16.f ) {
                 sprintf( text, "%.fth note", tmpValue );
             } else {
                 sprintf( text, "1/%.f measure", tmpValue );
@@ -373,7 +369,15 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
             return kResultTrue;
 
         case kWaveformId:
-            sprintf( text, "%.2d %%", ( int ) ( valueNormalized * 100.f ));
+            if ( valueNormalized >= 0.75f ) {
+                sprintf( text, "Square" );
+            } else if ( valueNormalized >= 0.5f ) {
+                sprintf( text, "Sawtooth" );
+            } else if ( valueNormalized >= 0.25f) {
+                sprintf( text, "Triangle" );
+            } else {
+                sprintf( text, "Sine" );
+            }
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
