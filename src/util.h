@@ -26,6 +26,7 @@
 #include <fstream>
 #include <string>
 #include <time.h>
+#include <vector>
 
 namespace Igorski {
 namespace Util {
@@ -68,6 +69,21 @@ namespace Util {
     void log( int value, const char* filename )
     {
         log( std::to_string( value ), filename );
+    }
+
+    void log( float* list, int listSize, const char* filename )
+    {
+        std::ofstream out;
+
+        out.open( filename, std::ios_base::app );
+
+        out << "{ ";
+
+        for ( size_t i = 0; i < listSize; i++ ) {
+            out << list[ i ] << ", ";
+        }
+        out << " }";
+        out.close();
     }
 
 }

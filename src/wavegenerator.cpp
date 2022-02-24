@@ -69,7 +69,7 @@ namespace WaveGenerator
 
                         case WaveForms::TRIANGLE:
                             sample += sin(( float ) s * VST::TWO_PI * ( float ) t / tableSize );
-                            tmp     = 1.0 - ( float ) ( std::abs( sample - 0.5 )) * 2.0;
+                            tmp     = 1.0 - ( float ) ( std::abs( sample - 0.5 )) * 4.0;
                             break;
 
                         case WaveForms::SAWTOOTH:
@@ -78,22 +78,24 @@ namespace WaveGenerator
                             break;
 
                         case WaveForms::SQUARE:
-                            sample += sin(( float ) s * VST::TWO_PI * ( float ) t / tableSize );
-                            tmp     = ( sample >= 0.0 ) ? 1.0 : -1.0;
+                            // regular sine generation
+                            sample += gibbs * sin(( float ) s * VST::TWO_PI * ( float ) t / tableSize );
+                            // snap to extremes
+                            tmp = ( sample >= 0.0 ) ? 1.0 : -1.0;
                             break;
                     }
                 }
                 outputBuffer[ t ] = tmp;
 
-                if ( tmp > maxValue ) {
-                    maxValue = tmp;
-                }
+                maxValue = fmax( abs( tmp ), maxValue );
             }
-            float factor = 1.0 / maxValue;
 
             // normalize values
-            for ( int j = 0; j < tableSize; ++j ) {
-                outputBuffer[ j ] *= factor;
+            if ( waveformType != WaveForms::SQUARE ) {
+                float factor = 1.0 / maxValue;
+                for ( int j = 0; j < tableSize; ++j ) {
+                    outputBuffer[ j ] *= factor;
+                }
             }
         }
         return waveTable;
