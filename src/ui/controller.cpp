@@ -82,14 +82,14 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
 
     RangeParameter* oddSpeedParam = new RangeParameter(
         USTRING( "Odd channel speed" ), kOddSpeedId, USTRING( "steps" ),
-        0.f, 1.f, 0.f,
+        0.f, 1.f, 0.35f,
         0, ParameterInfo::kCanAutomate, unitId
     );
     parameters.addParameter( oddSpeedParam );
 
     RangeParameter* evenSpeedParam = new RangeParameter(
         USTRING( "Even channel speed" ), kEvenSpeedId, USTRING( "steps" ),
-        0.f, 1.f, 0.f,
+        0.f, 1.f, 1.f,
         0, ParameterInfo::kCanAutomate, unitId
     );
     parameters.addParameter( evenSpeedParam );
