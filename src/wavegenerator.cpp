@@ -127,8 +127,27 @@ namespace WaveGenerator
                 maxValue = fmax( abs( tmp ), maxValue );
             }
 
-            // normalize values
-            if ( waveformType != WaveForms::SQUARE ) {
+            if ( waveformType == WaveForms::SQUARE ) {
+                // square waves are very violent, when smoothing is specified
+                // apply gentle fades around the start/end of the waveform
+                int smoothRange = 4;
+                float factor = 1.0 / smoothRange;
+                if ( TABLE_SIZE >= ( smoothRange * 2 )) {
+                    int fadeOutPos = TABLE_SIZE - smoothRange;
+                    int tableEnd   = TABLE_SIZE - 1;
+                    for ( int j = 0; j < TABLE_SIZE; ++j ) {
+                        // gentle fade in
+                        if ( j < smoothRange ) {
+                            outputBuffer[ j ] *= ( j == 0 ? 0 : j * factor );
+                        }
+                        // gentle fade out
+                        if ( j >= fadeOutPos ) {
+                            outputBuffer[ j ] *= (( tableEnd - j ) * factor );
+                        }
+                    }
+                }
+            } else {
+                // normalize values for all other waveforms to keep them in the -1 to +1 range
                 float factor = 1.0 / maxValue;
                 for ( int j = 0; j < TABLE_SIZE; ++j ) {
                     outputBuffer[ j ] *= factor;
