@@ -134,6 +134,17 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
         USTRING( "Choir" ), 0, 1, 0, ParameterInfo::kCanAutomate, kHarmonizeId, unitId
     );
 
+    parameters.addParameter(
+        USTRING( "Randomize closing speed" ), 0, 1, 0, ParameterInfo::kCanAutomate, kRandomSpeedId, unitId
+    );
+
+    RangeParameter* dryMixParam = new RangeParameter(
+        USTRING( "Dry mix" ), kDryMixId, USTRING( "%" ),
+        0.f, 1.f, 0.f,
+        0, ParameterInfo::kCanAutomate, unitId
+    );
+    parameters.addParameter( dryMixParam );
+
 // --- AUTO-GENERATED END
 
     // initialization
@@ -194,6 +205,14 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         if ( state->read( &savedHarmonize, sizeof( float )) != kResultOk )
             return kResultFalse;
 
+        float savedRandomSpeed = 1.f;
+        if ( state->read( &savedRandomSpeed, sizeof( float )) != kResultOk )
+            return kResultFalse;
+
+        float savedDryMix = 1.f;
+        if ( state->read( &savedDryMix, sizeof( float )) != kResultOk )
+            return kResultFalse;
+
 // --- AUTO-GENERATED SETSTATE END
 
 #if BYTEORDER == kBigEndian
@@ -208,6 +227,8 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
     SWAP_32( savedResampleRate )
     SWAP_32( savedPlaybackRate )
     SWAP_32( savedHarmonize )
+    SWAP_32( savedRandomSpeed )
+    SWAP_32( savedDryMix )
 
 // --- AUTO-GENERATED SETSTATE SWAP END
 
@@ -222,6 +243,8 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         setParamNormalized( kResampleRateId, savedResampleRate );
         setParamNormalized( kPlaybackRateId, savedPlaybackRate );
         setParamNormalized( kHarmonizeId, savedHarmonize );
+        setParamNormalized( kRandomSpeedId, savedRandomSpeed );
+        setParamNormalized( kDryMixId, savedDryMix );
 
 // --- AUTO-GENERATED SETSTATE SETPARAM END
 
@@ -403,6 +426,16 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
 
         case kHarmonizeId:
             sprintf( text, "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
+            Steinberg::UString( string, 128 ).fromAscii( text );
+            return kResultTrue;
+
+        case kRandomSpeedId:
+            sprintf( text, "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
+            Steinberg::UString( string, 128 ).fromAscii( text );
+            return kResultTrue;
+
+        case kDryMixId:
+            sprintf( text, "%.2d %%", ( int ) ( valueNormalized * 100.f ));
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 

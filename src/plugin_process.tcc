@@ -39,6 +39,7 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
     // audio as floats
 
     int32 i;
+    SampleType dryMix = ( SampleType ) _dryMix;
 
     float readPointer, tmpSample;
     int writePointer;
@@ -52,11 +53,10 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
     bool playFromRecordBuffer = isSlowedDown() || isDownSampled();
 
-    // if there are no effects, don't mix in the dry signal (instead function as classic gate)
-    bool mixDry = playFromRecordBuffer || _reverbEnabled || bitCrusher->isActive();
-
     for ( int32 c = 0; c < numInChannels; ++c )
     {
+        bool isOddChannel = ( c % 2 ) == 0;
+
         readPointer  = _readPointers[ c ];
         writePointer = _writePointer;
 
@@ -88,11 +88,17 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
             float nextSample, curSample, outSample;
             int r1 = 0, r2 = 0, t, t2;
-            float frac, s1, s2;
-            float incr = _fSampleIncr * _playbackRate; // iterator size when reading from recorded buffer
+            float incr, frac, s1, s2;
+
+            // calculate iterator size when reading from recorded buffer
+            // this is determined by the down sampling amount (defined in _fSampleIncr)
+            // and further more by the playback rate (for playback speed)
+            // in _harmonize mode, the playback rate is determined by the desired pitch shift
 
             if ( _harmonize ) {
-                incr = _fSampleIncr * Calc::pitchDown(( c % 2 ) == 0 ? 2 : 5 );
+                incr = _fSampleIncr * Calc::pitchDown( isOddChannel ? 2 : 5 );
+            } else {
+                incr = _fSampleIncr * _playbackRate;
             }
 
             LowPassFilter* lowPassFilter = _lowPassFilters.at( c );
@@ -129,7 +135,7 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
                 }
 
                 if (( readPointer += incr ) > maxReadOffset ) {
-                    // don't go to 0.f but align with current write offset to play "current audio"
+                    // don't go to 0.f but align with current write offset to play currently incoming audio
                     readPointer = ( float ) _writePointer;
                 }
             }
@@ -151,6 +157,19 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
             if ( ++writtenSamples >= _fullMeasureSamples ) {
                 writtenSamples = 0; // new measure
+            }
+
+            // if gate speed inversion is enabled, count the progress
+            // and advance the speeds every half measure
+
+            if ( _randomizeSpeed ) {
+                if ( isOddChannel && ( ++_oddInvertProg >= _halfMeasureSamples )) {
+                    _oddInvertProg = 0;
+                    setOddGateSpeed( Calc::cap( _curOddSteps == _oddSteps ? _oddSteps * 2 : _oddSteps ));
+                } else if ( !isOddChannel && ( ++_evenInvertProg >= _halfMeasureSamples )) {
+                    _evenInvertProg = 0;
+                    setEvenGateSpeed( Calc::cap( _curEvenSteps == _evenSteps ? _oddSteps * 2 : _oddSteps ));
+                }
             }
 
             // run sample accurate property updates
@@ -182,9 +201,7 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
             channelOutBuffer[ i ] = ( SampleType ) ( tmpSample ) * gateLevel;
 
             // blend in the dry signal (mixed to the negative of the gated signal)
-            if ( mixDry ) {
-                channelOutBuffer[ i ] += ( channelInBuffer[ i ] * ( 1.0 - gateLevel ));
-            }
+            channelOutBuffer[ i ] += (( channelInBuffer[ i ] * ( 1.0 - gateLevel )) * dryMix );
         }
         // end of processing for channel
 

@@ -39,6 +39,8 @@ enum
     kResampleRateId = 6,    // Regret
     kPlaybackRateId = 7,    // Sorrow
     kHarmonizeId = 8,    // Choir
+    kRandomSpeedId = 9,    // Randomize closing speed
+    kDryMixId = 10,    // Dry mix
 
 // --- AUTO-GENERATED END
 

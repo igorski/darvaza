@@ -111,6 +111,28 @@
               title="Choir" transparent="false" wants-focus="true" wheel-inc-value="0.1"
         />
 
+        <!-- Randomize closing speed -->
+        <view control-tag="Unit1::randomSpeedParam" class="CCheckBox" origin="299, 205" size="104, 21"
+              max-value="1" min-value="0" default-value="0"
+              background-offset="0, 0" boxfill-color="~ GreenCColor" autosize="bottom"
+              boxframe-color="~ BlackCColor" checkmark-color="~ BlackCColor"
+              draw-crossbox="true" font="~ NormalFontSmall" font-color="Light Grey"
+              autosize-to-fit="false" frame-width="1"
+              mouse-enabled="true" opacity="1" round-rect-radius="0"
+              title="Randomize closing speed" transparent="false" wants-focus="true" wheel-inc-value="0.1"
+        />
+
+        <!-- Dry mix -->
+        <view control-tag="Unit1::dryMixParam" class="CSlider" origin="10, 180" size="134, 21"
+              max-value="1.f" min-value="0.f" default-value="0.f"
+              background-offset="0, 0" bitmap="slider_background"
+              bitmap-offset="0, 0" draw-back="false" draw-back-color="~ WhiteCColor" draw-frame="false"
+              draw-frame-color="~ WhiteCColor" draw-value="false" draw-value-color="~ WhiteCColor" draw-value-from-center="false"
+              draw-value-inverted="false" handle-bitmap="slider_handle" handle-offset="0, 0"
+              mode="free click" mouse-enabled="true" opacity="1" orientation="horizontal" reverse-orientation="false"
+              transparent="true" transparent-handle="true" wheel-inc-value="0.1" zoom-factor="10"
+        />
+
 <!-- AUTO-GENERATED CONTROLS END -->
 
     </template>
@@ -158,6 +180,8 @@
        <control-tag name="Unit1::resampleRateParam" tag="6" />
        <control-tag name="Unit1::playbackRateParam" tag="7" />
        <control-tag name="Unit1::harmonizeParam" tag="8" />
+       <control-tag name="Unit1::randomSpeedParam" tag="9" />
+       <control-tag name="Unit1::dryMixParam" tag="10" />
 
 <!-- AUTO-GENERATED TAGS END -->
     </control-tags>

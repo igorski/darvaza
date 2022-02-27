@@ -63,6 +63,7 @@ class PluginProcess {
 
         // setters
 
+        void setDryMix( float value );
         void setGateSpeed( float oddSteps, float evenSteps );
 
         // others
@@ -89,6 +90,7 @@ class PluginProcess {
         void setResampleRate( float value );
         void enableReverb( bool enabled );
         void enableHarmonize( bool enabled );
+        void randomizeGateSpeed( bool enabled );
 
         // child processors
 
@@ -105,6 +107,18 @@ class PluginProcess {
         int _lastBufferSize = 0;    // size of the last buffer used when generating the _recordBuffer
 
         bool _reverbEnabled = false;
+        float _dryMix = 0.f;
+
+        bool _randomizeSpeed    = false;
+        int _oddInvertProg   = 0;
+        int _evenInvertProg  = 0;
+        float _oddSteps      = 0;
+        float _evenSteps     = 0;
+        float _curOddSteps   = 0;
+        float _curEvenSteps  = 0;
+
+        void setOddGateSpeed( float speed );
+        void setEvenGateSpeed( float speed );
 
         // read/write pointers for the record buffer used for record and playback
         // note that readPointers are unique per channel, as different playback
@@ -119,6 +133,7 @@ class PluginProcess {
 
         int _writtenMeasureSamples = 0;
         int _fullMeasureSamples    = 0;
+        int _halfMeasureSamples    = 0;
         int _beatSamples           = 0;
         int _sixteenthSamples      = 0;
 

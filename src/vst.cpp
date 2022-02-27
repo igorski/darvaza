@@ -173,6 +173,16 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
                             fHarmonize = ( float ) value;
                         break;
 
+                    case kRandomSpeedId:
+                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
+                            fRandomSpeed = ( float ) value;
+                        break;
+
+                    case kDryMixId:
+                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
+                            fDryMix = ( float ) value;
+                        break;
+
 // --- AUTO-GENERATED PROCESS END
                 }
                 syncModel();
@@ -322,6 +332,14 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
     if ( state->read( &savedHarmonize, sizeof ( float )) != kResultOk )
         return kResultFalse;
 
+    float savedRandomSpeed = 0.f;
+    if ( state->read( &savedRandomSpeed, sizeof ( float )) != kResultOk )
+        return kResultFalse;
+
+    float savedDryMix = 0.f;
+    if ( state->read( &savedDryMix, sizeof ( float )) != kResultOk )
+        return kResultFalse;
+
 // --- AUTO-GENERATED SETSTATE END
 
 #if BYTEORDER == kBigEndian
@@ -336,6 +354,8 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
    SWAP_32( savedResampleRate )
    SWAP_32( savedPlaybackRate )
    SWAP_32( savedHarmonize )
+   SWAP_32( savedRandomSpeed )
+   SWAP_32( savedDryMix )
 
 // --- AUTO-GENERATED SETSTATE SWAP END
 
@@ -351,6 +371,8 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
     fResampleRate = savedResampleRate;
     fPlaybackRate = savedPlaybackRate;
     fHarmonize = savedHarmonize;
+    fRandomSpeed = savedRandomSpeed;
+    fDryMix = savedDryMix;
 
 // --- AUTO-GENERATED SETSTATE APPLY END
 
@@ -404,6 +426,8 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
     float toSaveResampleRate = fResampleRate;
     float toSavePlaybackRate = fPlaybackRate;
     float toSaveHarmonize = fHarmonize;
+    float toSaveRandomSpeed = fRandomSpeed;
+    float toSaveDryMix = fDryMix;
 
 // --- AUTO-GENERATED GETSTATE END
 
@@ -420,6 +444,8 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
    SWAP_32( toSaveResampleRate )
    SWAP_32( toSavePlaybackRate )
    SWAP_32( toSaveHarmonize )
+   SWAP_32( toSaveRandomSpeed )
+   SWAP_32( toSaveDryMix )
 
 // --- AUTO-GENERATED GETSTATE SWAP END
 
@@ -435,6 +461,8 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
     state->write( &toSaveResampleRate, sizeof( float ));
     state->write( &toSavePlaybackRate, sizeof( float ));
     state->write( &toSaveHarmonize, sizeof( float ));
+    state->write( &toSaveRandomSpeed, sizeof( float ));
+    state->write( &toSaveDryMix, sizeof( float ));
 
 // --- AUTO-GENERATED GETSTATE APPLY END
 
@@ -564,11 +592,13 @@ void Darvaza::syncModel()
     // NOTE: when dealing with "bool"-types, use Calc::toBool() to determine on/off
     pluginProcess->createGateTables( fWaveform ); // should come before gate speed updates
     pluginProcess->setGateSpeed( fOddSpeed, Calc::toBool( fLinkGates ) ? fOddSpeed : fEvenSpeed );
+    pluginProcess->randomizeGateSpeed( Calc::toBool( fRandomSpeed ));
     pluginProcess->bitCrusher->setAmount( fBitDepth );
     pluginProcess->setResampleRate( fResampleRate );
     pluginProcess->setPlaybackRate( fPlaybackRate );
     pluginProcess->enableHarmonize( Calc::toBool( fHarmonize ));
     pluginProcess->enableReverb( Calc::toBool( fReverb ));
+    pluginProcess->setDryMix( fDryMix );
 }
 
 }

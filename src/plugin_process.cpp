@@ -106,14 +106,57 @@ PluginProcess::~PluginProcess() {
 
 /* setters */
 
+void PluginProcess::setDryMix( float value )
+{
+    _dryMix = value;
+}
+
 void PluginProcess::setGateSpeed( float oddSteps, float evenSteps )
 {
-    // (1.f / measureDuration value) converts seconds to cycles in Hertz
-    float oddValue  = 1.f / ( _fullMeasureDuration / Calc::gateSubdivision( oddSteps ));
-    float evenValue = 1.f / ( _fullMeasureDuration / Calc::gateSubdivision( evenSteps ));
+    _oddSteps  = oddSteps;
+    _evenSteps = evenSteps;
 
+    if ( _randomizeSpeed ) {
+        return; // if speed inversion is active let the process() function update the actual gate speeds
+    }
+    setOddGateSpeed( oddSteps );
+    setEvenGateSpeed( evenSteps );
+}
+
+void PluginProcess::setOddGateSpeed( float steps ) {
+    _curOddSteps = steps;
+
+    // (1.f / measureDuration value) converts seconds to cycles in Hertz
+    float value  = 1.f / ( _fullMeasureDuration / Calc::gateSubdivision( steps ));
     for ( size_t i = 0; i < _amountOfChannels; ++i ) {
-        _waveTables.at( i )->setFrequency(( i + 1 ) % 2 == 0 ? evenValue : oddValue );
+        bool isOddChannel = ( i % 2 ) == 0;
+        if ( isOddChannel ) {
+            _waveTables.at( i )->setFrequency( value );
+        }
+    }
+}
+
+void PluginProcess::setEvenGateSpeed( float steps ) {
+    _curEvenSteps = steps;
+
+    // (1.f / measureDuration value) converts seconds to cycles in Hertz
+    float value  = 1.f / ( _fullMeasureDuration / Calc::gateSubdivision( steps ));
+    for ( size_t i = 0; i < _amountOfChannels; ++i ) {
+        bool isEvenChannel = ( i % 2 ) == 1;
+        if ( isEvenChannel ) {
+            _waveTables.at( i )->setFrequency( value );
+        }
+    }
+}
+
+void PluginProcess::randomizeGateSpeed( bool enabled )
+{
+    _randomizeSpeed = enabled;
+
+    // when enabled the speed inversion, synchronize it with the current measure progress
+    if ( enabled ) {
+        _oddInvertProg  = _writtenMeasureSamples;
+        _evenInvertProg = _writtenMeasureSamples;
     }
 }
 
@@ -217,6 +260,7 @@ bool PluginProcess::setTempo( double tempo, int32 timeSigNumerator, int32 timeSi
 
     _fullMeasureDuration = ( 60.f / _tempo ) * _timeSigDenominator; // seconds per measure
     _fullMeasureSamples  = Calc::secondsToBuffer( _fullMeasureDuration );
+    _halfMeasureSamples  = ceil( _fullMeasureSamples / 2 );
     _beatSamples         = ceil( _fullMeasureSamples / _timeSigDenominator );
     _sixteenthSamples    = ceil( _fullMeasureSamples / 16 );
 
