@@ -92,11 +92,11 @@ class Darvaza : public AudioEffect
         float fEvenSpeed = 1.f;    // Even channel speed
         float fBitDepth = 0.f;    // Torture
         float fWaveform = 0.f;    // Door
-        float fReverb = 0;    // Evil
+        float fReverb = 0;    // Dwell
         float fLinkGates = 1;    // Link gates
         float fResampleRate = 0.f;    // Regret
         float fPlaybackRate = 0.f;    // Sorrow
-        float fHarmonize = 0;    // Choir
+        float fHarmonize = 0;    // Paean
         float fRandomSpeed = 0;    // Randomize closing speed
         float fDryMix = 0.f;    // Dry mix
 

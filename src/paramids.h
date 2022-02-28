@@ -34,11 +34,11 @@ enum
     kEvenSpeedId = 1,    // Even channel speed
     kBitDepthId = 2,    // Torture
     kWaveformId = 3,    // Door
-    kReverbId = 4,    // Evil
+    kReverbId = 4,    // Dwell
     kLinkGatesId = 5,    // Link gates
     kResampleRateId = 6,    // Regret
     kPlaybackRateId = 7,    // Sorrow
-    kHarmonizeId = 8,    // Choir
+    kHarmonizeId = 8,    // Paean
     kRandomSpeedId = 9,    // Randomize closing speed
     kDryMixId = 10,    // Dry mix
 

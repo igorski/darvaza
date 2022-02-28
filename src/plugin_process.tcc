@@ -52,6 +52,7 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
     prepareMixBuffers( inBuffer, numInChannels, bufferSize );
 
     bool playFromRecordBuffer = isSlowedDown() || isDownSampled();
+    bool randomizeSpeed = hasRandomizedSpeed();
 
     for ( int32 c = 0; c < numInChannels; ++c )
     {
@@ -162,13 +163,13 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
             // if gate speed inversion is enabled, count the progress
             // and advance the speeds every half measure
 
-            if ( _randomizeSpeed ) {
+            if ( randomizeSpeed ) {
                 if ( isOddChannel && ( ++_oddInvertProg >= _halfMeasureSamples )) {
                     _oddInvertProg = 0;
-                    setOddGateSpeed( Calc::cap( _curOddSteps == _oddSteps ? _oddSteps * 2 : _oddSteps ));
+                    setOddGateSpeed( _curOddSteps == _oddSteps ? _randomizedSpeed : _oddSteps );
                 } else if ( !isOddChannel && ( ++_evenInvertProg >= _halfMeasureSamples )) {
                     _evenInvertProg = 0;
-                    setEvenGateSpeed( Calc::cap( _curEvenSteps == _evenSteps ? _oddSteps * 2 : _oddSteps ));
+                    setEvenGateSpeed( _curEvenSteps == _evenSteps ? _randomizedSpeed : _evenSteps );
                 }
             }
 

@@ -86,7 +86,7 @@ const MODEL = [
     },
     {
         name: 'reverb',
-        descr: 'Evil',
+        descr: 'Dwell',
         value: { min: '0', max: '1', def: '0', type: 'bool' },
         ui: { x: 299, y: 205, w: 104, h: 21 }
     },
@@ -114,15 +114,31 @@ const MODEL = [
     },
     {
         name: 'harmonize',
-        descr: 'Choir',
+        descr: 'Paean',
         value: { min: '0', max: '1', def: '0', type: 'bool' },
         ui: { x: 299, y: 205, w: 104, h: 21 }
     },
     {
         name: 'randomSpeed',
         descr: 'Randomize closing speed',
-        value: { min: '0', max: '1', def: '0', type: 'bool' },
-        ui: { x: 299, y: 205, w: 104, h: 21 }
+        unitDescr: 'steps',
+        value: { min: '0', max: '1', def: '0', type: 'percent' },
+        ui: { x: 299, y: 205, w: 104, h: 21 },
+        customDescr:
+        `tmpValue = Igorski::Calc::gateSubdivision( valueNormalized );
+            if ( tmpValue <= 0.25f ) {
+                sprintf( text, "Off" );
+            } else if ( tmpValue <= 0.5f ) {
+                sprintf( text, "%.d measures", ( int ) ( 1.f / tmpValue ));
+            } else if ( tmpValue == 1.f ) {
+                sprintf( text, "1 measure" );
+            } else if ( tmpValue == 4.f ) {
+                sprintf( text, "Quarter note" );
+            } else if ( tmpValue == 8.f || tmpValue == 16.f ) {
+                sprintf( text, "%.fth note", tmpValue );
+            } else {
+                sprintf( text, "1/%.f measure", tmpValue );
+            }`,
     },
     {
         name: 'dryMix',

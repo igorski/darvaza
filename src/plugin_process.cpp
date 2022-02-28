@@ -113,12 +113,17 @@ void PluginProcess::setDryMix( float value )
 
 void PluginProcess::setGateSpeed( float oddSteps, float evenSteps )
 {
+    // set given steps as the "base" steps for the odd/even channels
+
     _oddSteps  = oddSteps;
     _evenSteps = evenSteps;
 
-    if ( _randomizeSpeed ) {
-        return; // if speed inversion is active let the process() function update the actual gate speeds
+    if ( hasRandomizedSpeed() ) {
+        return; // if speed randomization is active let the process() function update the actual gate speeds
     }
+
+    // invoking these getters sets the actual gate speeds
+
     setOddGateSpeed( oddSteps );
     setEvenGateSpeed( evenSteps );
 }
@@ -149,12 +154,12 @@ void PluginProcess::setEvenGateSpeed( float steps ) {
     }
 }
 
-void PluginProcess::randomizeGateSpeed( bool enabled )
+void PluginProcess::randomizeGateSpeed( float randomSteps )
 {
-    _randomizeSpeed = enabled;
+    _randomizedSpeed = randomSteps;
 
-    // when enabled the speed inversion, synchronize it with the current measure progress
-    if ( enabled ) {
+    // when enabling the speed inversion, synchronize it with the current measure progress
+    if ( hasRandomizedSpeed() ) {
         _oddInvertProg  = _writtenMeasureSamples;
         _evenInvertProg = _writtenMeasureSamples;
     }

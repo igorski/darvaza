@@ -592,7 +592,7 @@ void Darvaza::syncModel()
     // NOTE: when dealing with "bool"-types, use Calc::toBool() to determine on/off
     pluginProcess->createGateTables( fWaveform ); // should come before gate speed updates
     pluginProcess->setGateSpeed( fOddSpeed, Calc::toBool( fLinkGates ) ? fOddSpeed : fEvenSpeed );
-    pluginProcess->randomizeGateSpeed( Calc::toBool( fRandomSpeed ));
+    pluginProcess->randomizeGateSpeed( fRandomSpeed );
     pluginProcess->bitCrusher->setAmount( fBitDepth );
     pluginProcess->setResampleRate( fResampleRate );
     pluginProcess->setPlaybackRate( fPlaybackRate );

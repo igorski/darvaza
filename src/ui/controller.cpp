@@ -109,7 +109,7 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
     parameters.addParameter( waveformParam );
 
     parameters.addParameter(
-        USTRING( "Evil" ), 0, 1, 0, ParameterInfo::kCanAutomate, kReverbId, unitId
+        USTRING( "Dwell" ), 0, 1, 0, ParameterInfo::kCanAutomate, kReverbId, unitId
     );
 
     parameters.addParameter(
@@ -131,12 +131,15 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
     parameters.addParameter( playbackRateParam );
 
     parameters.addParameter(
-        USTRING( "Choir" ), 0, 1, 0, ParameterInfo::kCanAutomate, kHarmonizeId, unitId
+        USTRING( "Paean" ), 0, 1, 0, ParameterInfo::kCanAutomate, kHarmonizeId, unitId
     );
 
-    parameters.addParameter(
-        USTRING( "Randomize closing speed" ), 0, 1, 0, ParameterInfo::kCanAutomate, kRandomSpeedId, unitId
+    RangeParameter* randomSpeedParam = new RangeParameter(
+        USTRING( "Randomize closing speed" ), kRandomSpeedId, USTRING( "steps" ),
+        0, 1, 0,
+        0, ParameterInfo::kCanAutomate, unitId
     );
+    parameters.addParameter( randomSpeedParam );
 
     RangeParameter* dryMixParam = new RangeParameter(
         USTRING( "Dry mix" ), kDryMixId, USTRING( "%" ),
@@ -430,7 +433,20 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
             return kResultTrue;
 
         case kRandomSpeedId:
-            sprintf( text, "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
+            tmpValue = Igorski::Calc::gateSubdivision( valueNormalized );
+            if ( tmpValue <= 0.25f ) {
+                sprintf( text, "Off" );
+            } else if ( tmpValue <= 0.5f ) {
+                sprintf( text, "%.d measures", ( int ) ( 1.f / tmpValue ));
+            } else if ( tmpValue == 1.f ) {
+                sprintf( text, "1 measure" );
+            } else if ( tmpValue == 4.f ) {
+                sprintf( text, "Quarter note" );
+            } else if ( tmpValue == 8.f || tmpValue == 16.f ) {
+                sprintf( text, "%.fth note", tmpValue );
+            } else {
+                sprintf( text, "1/%.f measure", tmpValue );
+            }
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 

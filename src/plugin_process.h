@@ -65,6 +65,7 @@ class PluginProcess {
 
         void setDryMix( float value );
         void setGateSpeed( float oddSteps, float evenSteps );
+        void randomizeGateSpeed( float randomSteps );
 
         // others
 
@@ -90,7 +91,6 @@ class PluginProcess {
         void setResampleRate( float value );
         void enableReverb( bool enabled );
         void enableHarmonize( bool enabled );
-        void randomizeGateSpeed( bool enabled );
 
         // child processors
 
@@ -109,13 +109,13 @@ class PluginProcess {
         bool _reverbEnabled = false;
         float _dryMix = 0.f;
 
-        bool _randomizeSpeed    = false;
-        int _oddInvertProg   = 0;
-        int _evenInvertProg  = 0;
-        float _oddSteps      = 0;
-        float _evenSteps     = 0;
-        float _curOddSteps   = 0;
-        float _curEvenSteps  = 0;
+        float _randomizedSpeed = 0.f;
+        int _oddInvertProg     = 0;
+        int _evenInvertProg    = 0;
+        float _oddSteps        = 0;
+        float _evenSteps       = 0;
+        float _curOddSteps     = 0;
+        float _curEvenSteps    = 0;
 
         void setOddGateSpeed( float speed );
         void setEvenGateSpeed( float speed );
@@ -163,6 +163,10 @@ class PluginProcess {
 
         inline bool isDownSampled() {
             return _downSampleAmount > 1.f;
+        }
+
+        inline bool hasRandomizedSpeed() {
+            return _randomizedSpeed > 0.f;
         }
 
         void clearGateTables();
