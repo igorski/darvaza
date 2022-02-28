@@ -94,12 +94,9 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
     );
     parameters.addParameter( evenSpeedParam );
 
-    RangeParameter* bitDepthParam = new RangeParameter(
-        USTRING( "Torture" ), kBitDepthId, USTRING( "%" ),
-        0.f, 1.f, 0.f,
-        0, ParameterInfo::kCanAutomate, unitId
+    parameters.addParameter(
+        USTRING( "Link gates" ), 0, 1, 1, ParameterInfo::kCanAutomate, kLinkGatesId, unitId
     );
-    parameters.addParameter( bitDepthParam );
 
     RangeParameter* waveformParam = new RangeParameter(
         USTRING( "Door" ), kWaveformId, USTRING( "%" ),
@@ -107,14 +104,6 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
         0, ParameterInfo::kCanAutomate, unitId
     );
     parameters.addParameter( waveformParam );
-
-    parameters.addParameter(
-        USTRING( "Dwell" ), 0, 1, 0, ParameterInfo::kCanAutomate, kReverbId, unitId
-    );
-
-    parameters.addParameter(
-        USTRING( "Link gates" ), 0, 1, 1, ParameterInfo::kCanAutomate, kLinkGatesId, unitId
-    );
 
     RangeParameter* resampleRateParam = new RangeParameter(
         USTRING( "Regret" ), kResampleRateId, USTRING( "Hz" ),
@@ -131,8 +120,19 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
     parameters.addParameter( playbackRateParam );
 
     parameters.addParameter(
-        USTRING( "Paean" ), 0, 1, 0, ParameterInfo::kCanAutomate, kHarmonizeId, unitId
+        USTRING( "Dwell" ), 0, 1, 0, ParameterInfo::kCanAutomate, kReverbId, unitId
     );
+
+    parameters.addParameter(
+        USTRING( "Chant" ), 0, 1, 0, ParameterInfo::kCanAutomate, kHarmonizeId, unitId
+    );
+
+    RangeParameter* bitDepthParam = new RangeParameter(
+        USTRING( "Torture" ), kBitDepthId, USTRING( "%" ),
+        0.f, 1.f, 0.f,
+        0, ParameterInfo::kCanAutomate, unitId
+    );
+    parameters.addParameter( bitDepthParam );
 
     RangeParameter* randomSpeedParam = new RangeParameter(
         USTRING( "Randomize closing speed" ), kRandomSpeedId, USTRING( "steps" ),
@@ -142,7 +142,7 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
     parameters.addParameter( randomSpeedParam );
 
     RangeParameter* dryMixParam = new RangeParameter(
-        USTRING( "Dry mix" ), kDryMixId, USTRING( "%" ),
+        USTRING( "Entry" ), kDryMixId, USTRING( "%" ),
         0.f, 1.f, 0.f,
         0, ParameterInfo::kCanAutomate, unitId
     );
@@ -180,20 +180,12 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         if ( state->read( &savedEvenSpeed, sizeof( float )) != kResultOk )
             return kResultFalse;
 
-        float savedBitDepth = 1.f;
-        if ( state->read( &savedBitDepth, sizeof( float )) != kResultOk )
+        float savedLinkGates = 1.f;
+        if ( state->read( &savedLinkGates, sizeof( float )) != kResultOk )
             return kResultFalse;
 
         float savedWaveform = 1.f;
         if ( state->read( &savedWaveform, sizeof( float )) != kResultOk )
-            return kResultFalse;
-
-        float savedReverb = 1.f;
-        if ( state->read( &savedReverb, sizeof( float )) != kResultOk )
-            return kResultFalse;
-
-        float savedLinkGates = 1.f;
-        if ( state->read( &savedLinkGates, sizeof( float )) != kResultOk )
             return kResultFalse;
 
         float savedResampleRate = 1.f;
@@ -204,8 +196,16 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         if ( state->read( &savedPlaybackRate, sizeof( float )) != kResultOk )
             return kResultFalse;
 
+        float savedReverb = 1.f;
+        if ( state->read( &savedReverb, sizeof( float )) != kResultOk )
+            return kResultFalse;
+
         float savedHarmonize = 1.f;
         if ( state->read( &savedHarmonize, sizeof( float )) != kResultOk )
+            return kResultFalse;
+
+        float savedBitDepth = 1.f;
+        if ( state->read( &savedBitDepth, sizeof( float )) != kResultOk )
             return kResultFalse;
 
         float savedRandomSpeed = 1.f;
@@ -223,13 +223,13 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
 // --- AUTO-GENERATED SETSTATE SWAP START
     SWAP_32( savedOddSpeed )
     SWAP_32( savedEvenSpeed )
-    SWAP_32( savedBitDepth )
-    SWAP_32( savedWaveform )
-    SWAP_32( savedReverb )
     SWAP_32( savedLinkGates )
+    SWAP_32( savedWaveform )
     SWAP_32( savedResampleRate )
     SWAP_32( savedPlaybackRate )
+    SWAP_32( savedReverb )
     SWAP_32( savedHarmonize )
+    SWAP_32( savedBitDepth )
     SWAP_32( savedRandomSpeed )
     SWAP_32( savedDryMix )
 
@@ -239,13 +239,13 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
 // --- AUTO-GENERATED SETSTATE SETPARAM START
         setParamNormalized( kOddSpeedId, savedOddSpeed );
         setParamNormalized( kEvenSpeedId, savedEvenSpeed );
-        setParamNormalized( kBitDepthId, savedBitDepth );
-        setParamNormalized( kWaveformId, savedWaveform );
-        setParamNormalized( kReverbId, savedReverb );
         setParamNormalized( kLinkGatesId, savedLinkGates );
+        setParamNormalized( kWaveformId, savedWaveform );
         setParamNormalized( kResampleRateId, savedResampleRate );
         setParamNormalized( kPlaybackRateId, savedPlaybackRate );
+        setParamNormalized( kReverbId, savedReverb );
         setParamNormalized( kHarmonizeId, savedHarmonize );
+        setParamNormalized( kBitDepthId, savedBitDepth );
         setParamNormalized( kRandomSpeedId, savedRandomSpeed );
         setParamNormalized( kDryMixId, savedDryMix );
 
@@ -389,8 +389,8 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
-        case kBitDepthId:
-            sprintf( text, "%.d Bits", ( int ) ( 15 * abs( valueNormalized - 1.f )) + 1 );
+        case kLinkGatesId:
+            sprintf( text, "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
@@ -407,16 +407,6 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
-        case kReverbId:
-            sprintf( text, "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
-            Steinberg::UString( string, 128 ).fromAscii( text );
-            return kResultTrue;
-
-        case kLinkGatesId:
-            sprintf( text, "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
-            Steinberg::UString( string, 128 ).fromAscii( text );
-            return kResultTrue;
-
         case kResampleRateId:
             sprintf( text, "%.2d Hz", ( int ) (( Igorski::VST::SAMPLE_RATE - Igorski::PluginProcess::MIN_SAMPLE_RATE ) * abs( valueNormalized - 1.f )) + ( int ) Igorski::PluginProcess::MIN_SAMPLE_RATE );
             Steinberg::UString( string, 128 ).fromAscii( text );
@@ -427,8 +417,18 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
+        case kReverbId:
+            sprintf( text, "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
+            Steinberg::UString( string, 128 ).fromAscii( text );
+            return kResultTrue;
+
         case kHarmonizeId:
             sprintf( text, "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
+            Steinberg::UString( string, 128 ).fromAscii( text );
+            return kResultTrue;
+
+        case kBitDepthId:
+            sprintf( text, "%.d Bits", ( int ) ( 15 * abs( valueNormalized - 1.f )) + 1 );
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 

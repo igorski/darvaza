@@ -47,7 +47,7 @@ const MODEL = [
         descr: 'Odd channel speed',
         unitDescr: 'steps',
         value: { min: '0.f', max: '1.f', def: '0.35f', type: 'percent' },
-        ui: { x: 199, y: 165, w: 104, h: 21 },
+        ui: { x: 217, y: 157, w: 70, h: 70 },
         customDescr: gateSubdivisionFormatFn,
     },
     {
@@ -55,24 +55,21 @@ const MODEL = [
         descr: 'Even channel speed',
         unitDescr: 'steps',
         value: { min: '0.f', max: '1.f', def: '1.f', type: 'percent' },
-        ui: { x: 249, y: 165, w: 104, h: 21 },
+        ui: { x: 310, y: 157, w: 70, h: 70 },
         customDescr: gateSubdivisionFormatFn,
     },
     {
-        name: 'bitDepth',
-        descr: 'Torture',
-        unitDescr: '%',
-        value: { min: '0.f', max: '1.f', def: '0.f', type: 'percent' },
-        ui: { x: 299, y: 165, w: 104, h: 21 },
-        // note we treat full resolution as 16-bits (but is in fact whatever host is)
-        customDescr: 'sprintf( text, "%.d Bits", ( int ) ( 15 * abs( valueNormalized - 1.f )) + 1 );'
+        name: 'linkGates',
+        descr: 'Link gates',
+        value: { min: '0', max: '1', def: '1', type: 'bool' },
+        ui: { x: 290, y: 246, w: 25, h: 40 }
     },
     {
         name: 'waveform',
         descr: 'Door',
         unitDescr: '%',
         value: { min: '0.f', max: '1.f', def: '0.f', type: 'percent' },
-        ui: { x: 249, y: 205, w: 104, h: 21 },
+        ui: { x: 261, y: 295, w: 70, h: 70 },
         customDescr:
         `if ( valueNormalized >= 0.75f ) {
                 sprintf( text, "Square" );
@@ -85,23 +82,11 @@ const MODEL = [
             }`
     },
     {
-        name: 'reverb',
-        descr: 'Dwell',
-        value: { min: '0', max: '1', def: '0', type: 'bool' },
-        ui: { x: 299, y: 205, w: 104, h: 21 }
-    },
-    {
-        name: 'linkGates',
-        descr: 'Link gates',
-        value: { min: '0', max: '1', def: '1', type: 'bool' },
-        ui: { x: 299, y: 205, w: 104, h: 21 }
-    },
-    {
         name: 'resampleRate',
         descr: 'Regret',
         unitDescr: 'Hz',
         value: { min: '0.f', max: '1.f', def: '0.f', type: 'percent' },
-        ui: { x: 292, y: 196, w: 134, h: 21 },
+        ui: { x: 481, y: 157, w: 70, h: 70 },
         customDescr: 'sprintf( text, "%.2d Hz", ( int ) (( Igorski::VST::SAMPLE_RATE - Igorski::PluginProcess::MIN_SAMPLE_RATE ) * abs( valueNormalized - 1.f )) + ( int ) Igorski::PluginProcess::MIN_SAMPLE_RATE );'
     },
     {
@@ -109,21 +94,36 @@ const MODEL = [
         descr: 'Sorrow',
         unitDescr: '%',
         value: { min: '0.f', max: '1.f', def: '0.f', type: 'percent' },
-        ui: { x: 292, y: 346, w: 134, h: 21 },
+        ui: { x: 481, y: 309, w: 70, h: 70 },
         customDescr: 'sprintf( text, "%.2d %%", ( int ) (( abs( valueNormalized - 1.f ) * ( 100.f * Igorski::PluginProcess::MIN_PLAYBACK_SPEED )) + ( Igorski::PluginProcess::MIN_PLAYBACK_SPEED * 100.f )));'
     },
     {
-        name: 'harmonize',
-        descr: 'Paean',
+        name: 'reverb',
+        descr: 'Dwell',
         value: { min: '0', max: '1', def: '0', type: 'bool' },
-        ui: { x: 299, y: 205, w: 104, h: 21 }
+        ui: { x: 290, y: 433, w: 70, h: 70 }
+    },
+    {
+        name: 'harmonize',
+        descr: 'Chant',
+        value: { min: '0', max: '1', def: '0', type: 'bool' },
+        ui: { x: 290, y: 485, w: 70, h: 70 }
+    },
+    {
+        name: 'bitDepth',
+        descr: 'Torture',
+        unitDescr: '%',
+        value: { min: '0.f', max: '1.f', def: '0.f', type: 'percent' },
+        ui: { x: 296, y: 165, w: 70, h: 70, visible: false },
+        // note we treat full resolution as 16-bits (but is in fact whatever host is)
+        customDescr: 'sprintf( text, "%.d Bits", ( int ) ( 15 * abs( valueNormalized - 1.f )) + 1 );'
     },
     {
         name: 'randomSpeed',
         descr: 'Randomize closing speed',
         unitDescr: 'steps',
         value: { min: '0', max: '1', def: '0', type: 'percent' },
-        ui: { x: 299, y: 205, w: 104, h: 21 },
+        ui: { x: 48, y: 309, w: 70, h: 70 },
         customDescr:
         `tmpValue = Igorski::Calc::gateSubdivision( valueNormalized );
             if ( tmpValue <= 0.25f ) {
@@ -142,10 +142,10 @@ const MODEL = [
     },
     {
         name: 'dryMix',
-        descr: 'Dry mix',
+        descr: 'Entry',
         unitDescr: '%',
         value: { min: '0.f', max: '1.f', def: '0.f', type: 'percent' },
-        ui: { x: 10, y: 180, w: 134, h: 21 }
+        ui: { x: 48, y: 157, w: 70, h: 70 }
     }
 ];
 
@@ -407,6 +407,9 @@ function generateUI() {
     MODEL.filter(entry => !!entry.ui)
          .forEach(( entry, index ) =>
     {
+        if ( entry.ui?.visible === false ) {
+            return; // we allow some controls to be exposed to the DAW but not in the UI
+        }
         const { x, y, w, h } = entry.ui;
         const { descr }      = entry;
         let { min, max, def, type } = entry.value;
@@ -418,24 +421,25 @@ function generateUI() {
         let control;
 
         if ( type === 'bool' ) {
-            control = `<view control-tag="Unit1::${param}" class="CCheckBox" origin="${x}, ${y}" size="${w}, ${h}"
-              max-value="${max}" min-value="${min}" default-value="${def}"
-              background-offset="0, 0" boxfill-color="~ GreenCColor" autosize="bottom"
-              boxframe-color="~ BlackCColor" checkmark-color="~ BlackCColor"
-              draw-crossbox="true" font="~ NormalFontSmall" font-color="Light Grey"
-              autosize-to-fit="false" frame-width="1"
-              mouse-enabled="true" opacity="1" round-rect-radius="0"
-              title="${descr}" transparent="false" wants-focus="true" wheel-inc-value="0.1"
+            control = `<view
+              control-tag="Unit1::${param}" class="CCheckBox" origin="${x}, ${y}" size="${w}, ${h}"
+              autosize-to-fit="false"
+              background-offset="0, 0" boxfill-color="#1f0f13" autosize="bottom"
+              boxframe-color="#1f0f13" checkmark-color="#e20000"
+              default-value="${def}" draw-crossbox="true" font="~ NormalFontSmall" font-color="#e20000" frame-width="1"
+              max-value="${max}" min-value="${min}" mouse-enabled="true" opacity="1" round-rect-radius="0"
+              title="" transparent="false" wants-focus="true" wheel-inc-value="0.1"
         />`;
         } else {
-            control = `<view control-tag="Unit1::${param}" class="CSlider" origin="${x}, ${y}" size="${w}, ${h}"
-              max-value="${max}" min-value="${min}" default-value="${def}"
-              background-offset="0, 0" bitmap="slider_background"
-              bitmap-offset="0, 0" draw-back="false" draw-back-color="~ WhiteCColor" draw-frame="false"
-              draw-frame-color="~ WhiteCColor" draw-value="false" draw-value-color="~ WhiteCColor" draw-value-from-center="false"
-              draw-value-inverted="false" handle-bitmap="slider_handle" handle-offset="0, 0"
-              mode="free click" mouse-enabled="true" opacity="1" orientation="horizontal" reverse-orientation="false"
-              transparent="true" transparent-handle="true" wheel-inc-value="0.1" zoom-factor="10"
+            control = `<view
+              control-tag="Unit1::${param}" class="CKnob" origin="${x}, ${y}" size="${w}, ${h}"
+              angle-range="270" angle-start="135" autosize="right top"
+              background-offset="0, 0" circle-drawing="true" corona-color="#e20000" corona-dash-dot="false"
+              corona-drawing="true" corona-from-center="false" corona-inset="5" corona-inverted="false"
+              corona-line-cap-butt="false" corona-outline="true" corona-outline-width-add="0" default-value="${def}"
+              handle-color="#e20000" handle-line-width="7" handle-shadow-color="~ GreyCColor" max-value="${max}"
+              min-value="${min}" mouse-enabled="true" opacity="1" skip-handle-drawing="true" transparent="false"
+              value-inset="5" wants-focus="true" wheel-inc-value="0.1" zoom-factor="1.5"
         />`;
         }
         controlLines.push(`

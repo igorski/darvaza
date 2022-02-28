@@ -1,19 +1,14 @@
-# vst-plugin-boilerplate
-## Checklist before releasing plugin
+# Darvaza
 
- * replace instances of \__PLUGIN_NAME\__ with your plugins name (without spaces)
- * everything described in the README below w/ regards to plugin types
-
-# __PLUGIN_NAME__
-
-__PLUGIN_NAME__ is a VST/AU plug-in which provides a gating effect. The gate can use different waveforms
-and its speed is controllable across channels. The gates oscillators are synchronized to the host tempo
-and time signature. What sets the plugin apart from the usual oscillator based gates is that the functions
+Darvaza is a VST/AU plug-in which provides a gating effect. The gate can use different waveforms
+and its speed is individually controllable across channels. The gates oscillators are synchronized to the host
+tempo and time signature. What sets the plugin apart from the usual oscillator based gates is that the gate functions
 using _quid pro quo_. When the gate closes on your input signal, you get a signal in return. This signal
-is based on your input, but a plethora of things have gone wrong with it.
+is based on your input, but a plethora of things have gone wrong with it. Basically you your incoming sound
+as if it was part of a bad dream.
 
-If you must know _exact details_, the returned sound can be time stretched, down sampled, reverberated and
-frozen or bit crushed. What you imagine is left of a soul after all Hell has chewed it out.
+If you must know _exact details_, the returned sound can be time stretched, down sampled, bit crushed,
+reverberated and frozen. Kinda what you'd imagine is left of a soul after all Hell has chewed it out.
 
 ## On compatibility
 
@@ -100,7 +95,7 @@ And if you are running Linux, you can easily resolve all dependencies by first r
 
 ### Building the plugin
 
-Run CMake to generate the Makefile for your environment, after which you can compile the plugin using make. The build output will be stored in _./build/VST3/__PLUGIN_NAME__.vst3_ as well as symbolically linked to your systems VST-plugin folder (on Unix).
+Run CMake to generate the Makefile for your environment, after which you can compile the plugin using make. The build output will be stored in _./build/VST3/darvaza.vst3_ as well as symbolically linked to your systems VST-plugin folder (on Unix).
 
 You must provide the path to the Steinberg SDK by providing _VST3_SDK_ROOT_ to CMake like so:
 
@@ -134,8 +129,8 @@ You can copy the build output into your system VST(3) folder and run it directly
 
 When debugging, you can also choose to run the plugin against Steinbergs validator and editor host utilities:
 
-    {VST3_SDK_ROOT}/build/bin/validator  build/VST3/__PLUGIN_NAME__.vst3
-    {VST3_SDK_ROOT}/build/bin/editorhost build/VST3/__PLUGIN_NAME__.vst3
+    {VST3_SDK_ROOT}/build/bin/validator  build/VST3/darvaza.vst3
+    {VST3_SDK_ROOT}/build/bin/editorhost build/VST3/darvaza.vst3
 
 ### Build as Audio Unit (macOS only)
 
@@ -149,7 +144,7 @@ Is aided by the excellent [Jamba framework](https://github.com/pongasoft/jamba) 
 VST3_SDK_ROOT=/path/to/VST_SDK/VST3_SDK sh build_au.sh
 ```
 
-The subsequent Audio Unit component will be located in _./build/VST3/__PLUGIN_NAME__.component_ as well as linked
+The subsequent Audio Unit component will be located in _./build/VST3/darvaza.component_ as well as linked
 in _~/Library/Audio/Plug-Ins/Components/_
 
 You can validate the Audio Unit using Apple's _auval_ utility, by running _auval -v aufx dely IGOR_ on the command line. Note that there is the curious behaviour that you might need to reboot before the plugin shows up, though you can force a flush of the Audio Unit cache at runtime by running _killall -9 AudioComponentRegistrar_.

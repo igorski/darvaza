@@ -138,24 +138,14 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
                             fEvenSpeed = ( float ) value;
                         break;
 
-                    case kBitDepthId:
+                    case kLinkGatesId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fBitDepth = ( float ) value;
+                            fLinkGates = ( float ) value;
                         break;
 
                     case kWaveformId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
                             fWaveform = ( float ) value;
-                        break;
-
-                    case kReverbId:
-                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fReverb = ( float ) value;
-                        break;
-
-                    case kLinkGatesId:
-                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fLinkGates = ( float ) value;
                         break;
 
                     case kResampleRateId:
@@ -168,9 +158,19 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
                             fPlaybackRate = ( float ) value;
                         break;
 
+                    case kReverbId:
+                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
+                            fReverb = ( float ) value;
+                        break;
+
                     case kHarmonizeId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
                             fHarmonize = ( float ) value;
+                        break;
+
+                    case kBitDepthId:
+                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
+                            fBitDepth = ( float ) value;
                         break;
 
                     case kRandomSpeedId:
@@ -304,20 +304,12 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
     if ( state->read( &savedEvenSpeed, sizeof ( float )) != kResultOk )
         return kResultFalse;
 
-    float savedBitDepth = 0.f;
-    if ( state->read( &savedBitDepth, sizeof ( float )) != kResultOk )
+    float savedLinkGates = 0.f;
+    if ( state->read( &savedLinkGates, sizeof ( float )) != kResultOk )
         return kResultFalse;
 
     float savedWaveform = 0.f;
     if ( state->read( &savedWaveform, sizeof ( float )) != kResultOk )
-        return kResultFalse;
-
-    float savedReverb = 0.f;
-    if ( state->read( &savedReverb, sizeof ( float )) != kResultOk )
-        return kResultFalse;
-
-    float savedLinkGates = 0.f;
-    if ( state->read( &savedLinkGates, sizeof ( float )) != kResultOk )
         return kResultFalse;
 
     float savedResampleRate = 0.f;
@@ -328,8 +320,16 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
     if ( state->read( &savedPlaybackRate, sizeof ( float )) != kResultOk )
         return kResultFalse;
 
+    float savedReverb = 0.f;
+    if ( state->read( &savedReverb, sizeof ( float )) != kResultOk )
+        return kResultFalse;
+
     float savedHarmonize = 0.f;
     if ( state->read( &savedHarmonize, sizeof ( float )) != kResultOk )
+        return kResultFalse;
+
+    float savedBitDepth = 0.f;
+    if ( state->read( &savedBitDepth, sizeof ( float )) != kResultOk )
         return kResultFalse;
 
     float savedRandomSpeed = 0.f;
@@ -347,13 +347,13 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
 // --- AUTO-GENERATED SETSTATE SWAP START
    SWAP_32( savedOddSpeed )
    SWAP_32( savedEvenSpeed )
-   SWAP_32( savedBitDepth )
-   SWAP_32( savedWaveform )
-   SWAP_32( savedReverb )
    SWAP_32( savedLinkGates )
+   SWAP_32( savedWaveform )
    SWAP_32( savedResampleRate )
    SWAP_32( savedPlaybackRate )
+   SWAP_32( savedReverb )
    SWAP_32( savedHarmonize )
+   SWAP_32( savedBitDepth )
    SWAP_32( savedRandomSpeed )
    SWAP_32( savedDryMix )
 
@@ -364,13 +364,13 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
 // --- AUTO-GENERATED SETSTATE APPLY START
     fOddSpeed = savedOddSpeed;
     fEvenSpeed = savedEvenSpeed;
-    fBitDepth = savedBitDepth;
-    fWaveform = savedWaveform;
-    fReverb = savedReverb;
     fLinkGates = savedLinkGates;
+    fWaveform = savedWaveform;
     fResampleRate = savedResampleRate;
     fPlaybackRate = savedPlaybackRate;
+    fReverb = savedReverb;
     fHarmonize = savedHarmonize;
+    fBitDepth = savedBitDepth;
     fRandomSpeed = savedRandomSpeed;
     fDryMix = savedDryMix;
 
@@ -419,13 +419,13 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
 // --- AUTO-GENERATED GETSTATE START
     float toSaveOddSpeed = fOddSpeed;
     float toSaveEvenSpeed = fEvenSpeed;
-    float toSaveBitDepth = fBitDepth;
-    float toSaveWaveform = fWaveform;
-    float toSaveReverb = fReverb;
     float toSaveLinkGates = fLinkGates;
+    float toSaveWaveform = fWaveform;
     float toSaveResampleRate = fResampleRate;
     float toSavePlaybackRate = fPlaybackRate;
+    float toSaveReverb = fReverb;
     float toSaveHarmonize = fHarmonize;
+    float toSaveBitDepth = fBitDepth;
     float toSaveRandomSpeed = fRandomSpeed;
     float toSaveDryMix = fDryMix;
 
@@ -437,13 +437,13 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
 // --- AUTO-GENERATED GETSTATE SWAP START
    SWAP_32( toSaveOddSpeed )
    SWAP_32( toSaveEvenSpeed )
-   SWAP_32( toSaveBitDepth )
-   SWAP_32( toSaveWaveform )
-   SWAP_32( toSaveReverb )
    SWAP_32( toSaveLinkGates )
+   SWAP_32( toSaveWaveform )
    SWAP_32( toSaveResampleRate )
    SWAP_32( toSavePlaybackRate )
+   SWAP_32( toSaveReverb )
    SWAP_32( toSaveHarmonize )
+   SWAP_32( toSaveBitDepth )
    SWAP_32( toSaveRandomSpeed )
    SWAP_32( toSaveDryMix )
 
@@ -454,13 +454,13 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
 // --- AUTO-GENERATED GETSTATE APPLY START
     state->write( &toSaveOddSpeed, sizeof( float ));
     state->write( &toSaveEvenSpeed, sizeof( float ));
-    state->write( &toSaveBitDepth, sizeof( float ));
-    state->write( &toSaveWaveform, sizeof( float ));
-    state->write( &toSaveReverb, sizeof( float ));
     state->write( &toSaveLinkGates, sizeof( float ));
+    state->write( &toSaveWaveform, sizeof( float ));
     state->write( &toSaveResampleRate, sizeof( float ));
     state->write( &toSavePlaybackRate, sizeof( float ));
+    state->write( &toSaveReverb, sizeof( float ));
     state->write( &toSaveHarmonize, sizeof( float ));
+    state->write( &toSaveBitDepth, sizeof( float ));
     state->write( &toSaveRandomSpeed, sizeof( float ));
     state->write( &toSaveDryMix, sizeof( float ));
 

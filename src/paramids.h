@@ -32,15 +32,15 @@ enum
 // --- AUTO-GENERATED START
     kOddSpeedId = 0,    // Odd channel speed
     kEvenSpeedId = 1,    // Even channel speed
-    kBitDepthId = 2,    // Torture
+    kLinkGatesId = 2,    // Link gates
     kWaveformId = 3,    // Door
-    kReverbId = 4,    // Dwell
-    kLinkGatesId = 5,    // Link gates
-    kResampleRateId = 6,    // Regret
-    kPlaybackRateId = 7,    // Sorrow
-    kHarmonizeId = 8,    // Paean
+    kResampleRateId = 4,    // Regret
+    kPlaybackRateId = 5,    // Sorrow
+    kReverbId = 6,    // Dwell
+    kHarmonizeId = 7,    // Chant
+    kBitDepthId = 8,    // Torture
     kRandomSpeedId = 9,    // Randomize closing speed
-    kDryMixId = 10,    // Dry mix
+    kDryMixId = 10,    // Entry
 
 // --- AUTO-GENERATED END
 

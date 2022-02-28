@@ -144,9 +144,7 @@ endif()
 
 set(vst_resources
     "resource/background.png"
-    "resource/slider_background.png"
-    "resource/slider_handle.png"
-    "resource/slider_handle_2.0x.png"
+    "resource/version.png"
 )
 set(vst_ui_descr "resource/plugin.uidesc")
 
