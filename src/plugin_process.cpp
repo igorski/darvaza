@@ -111,21 +111,36 @@ void PluginProcess::setDryMix( float value )
     _dryMix = value;
 }
 
-void PluginProcess::setGateSpeed( float oddSteps, float evenSteps )
+void PluginProcess::setGateSpeed( float oddSteps, float evenSteps, bool linkGates )
 {
+    bool wasLinked = _linkedGates;
+
     // set given steps as the "base" steps for the odd/even channels
 
     _oddSteps  = oddSteps;
-    _evenSteps = evenSteps;
+    _evenSteps = linkGates ? oddSteps : evenSteps;
+
+    _linkedGates = linkGates;
 
     if ( hasRandomizedSpeed() ) {
         return; // if speed randomization is active let the process() function update the actual gate speeds
     }
 
-    // invoking these getters sets the actual gate speeds
+    // in case the gate speeds are newly synchronized, align the oscillator accumulators
 
-    setOddGateSpeed( oddSteps );
-    setEvenGateSpeed( evenSteps );
+    if ( linkGates && !wasLinked ) {
+        for ( size_t i = 0; i < _amountOfChannels; ++i ) {
+            bool isEvenChannel = ( i % 2 ) == 1;
+            if ( isEvenChannel ) {
+                _waveTables.at( i )->setAccumulator( _waveTables.at( i - 1 )->getAccumulator() );
+            }
+        }
+    }
+
+    // invoking these sets the actual gate speeds onto the wave tables
+
+    setOddGateSpeed( _oddSteps );
+    setEvenGateSpeed( _evenSteps );
 }
 
 void PluginProcess::setOddGateSpeed( float steps ) {

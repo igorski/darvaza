@@ -214,7 +214,7 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
 
         if ( pluginProcess->setTempo( data.processContext->tempo,
             data.processContext->timeSigNumerator, data.processContext->timeSigDenominator )) {
-            pluginProcess->setGateSpeed( fOddSpeed, fEvenSpeed );
+            pluginProcess->setGateSpeed( fOddSpeed, fEvenSpeed, Calc::toBool( fLinkGates ));
         }
     }
 
@@ -591,7 +591,7 @@ void Darvaza::syncModel()
     // forward the protected model values onto the plugin process and related processors
     // NOTE: when dealing with "bool"-types, use Calc::toBool() to determine on/off
     pluginProcess->createGateTables( fWaveform ); // should come before gate speed updates
-    pluginProcess->setGateSpeed( fOddSpeed, Calc::toBool( fLinkGates ) ? fOddSpeed : fEvenSpeed );
+    pluginProcess->setGateSpeed( fOddSpeed, fEvenSpeed, Calc::toBool( fLinkGates ));
     pluginProcess->randomizeGateSpeed( fRandomSpeed );
     pluginProcess->bitCrusher->setAmount( fBitDepth );
     pluginProcess->setResampleRate( fResampleRate );

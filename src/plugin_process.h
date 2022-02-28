@@ -64,7 +64,7 @@ class PluginProcess {
         // setters
 
         void setDryMix( float value );
-        void setGateSpeed( float oddSteps, float evenSteps );
+        void setGateSpeed( float oddSteps, float evenSteps, bool linkGates );
         void randomizeGateSpeed( float randomSteps );
 
         // others
@@ -109,6 +109,7 @@ class PluginProcess {
         bool _reverbEnabled = false;
         float _dryMix = 0.f;
 
+        bool _linkedGates      = false;
         float _randomizedSpeed = 0.f;
         int _oddInvertProg     = 0;
         int _evenInvertProg    = 0;
