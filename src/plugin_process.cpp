@@ -23,6 +23,7 @@
 #include "plugin_process.h"
 #include "calc.h"
 #include "tablepool.h"
+#include "waveforms.h"
 #include <math.h>
 
 namespace Igorski {
@@ -353,10 +354,17 @@ void PluginProcess::createGateTables( float normalizedWaveFormType ) {
     }
 
     _gateWaveForm = waveForm;
-    clearGateTables();
 
-    for ( size_t i = 0; i < _amountOfChannels; ++i ) {
-        _waveTables.push_back( TablePool::getTable( waveForm )->clone() );
+    // we keep the wave tables as they are and update their buffer contents
+    // (this keeps accumulator position and thus phase as-is)
+
+    float* newBuffer = TablePool::getTable( waveForm )->getBuffer();
+
+    for ( size_t c = 0; c < _amountOfChannels; ++c ) {
+        float* buffer = _waveTables.at( c )->getBuffer();
+        for ( size_t i = 0; i < Igorski::VST::TABLE_SIZE; ++i ) {
+            buffer[ i ] = newBuffer[ i ];
+        }
     }
 }
 
