@@ -147,7 +147,7 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
                     }
                 }
             }
-            _lastSamples[ c ] = lastSample;
+            _lastSamples[ c ] = Calc::capSample( lastSample );
         }
 
         // 3. run the pre mix effects that require no sample accurate property updates
