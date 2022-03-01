@@ -37,10 +37,11 @@ enum
     kResampleRateId = 4,    // Regret
     kPlaybackRateId = 5,    // Sorrow
     kReverbId = 6,    // Dwell
-    kHarmonizeId = 7,    // Chant
-    kBitDepthId = 8,    // Torture
-    kRandomSpeedId = 9,    // Randomize closing speed
-    kDryMixId = 10,    // Entry
+    kHarmonizeId = 7,    // Weep
+    kReverseId = 8,    // Recast
+    kBitDepthId = 9,    // Torture
+    kRandomSpeedId = 10,    // Randomize closing speed
+    kDryMixId = 11,    // Entry
 
 // --- AUTO-GENERATED END
 

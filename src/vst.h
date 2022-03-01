@@ -95,7 +95,8 @@ class Darvaza : public AudioEffect
         float fResampleRate = 0.f;    // Regret
         float fPlaybackRate = 0.f;    // Sorrow
         float fReverb = 0;    // Dwell
-        float fHarmonize = 0;    // Chant
+        float fHarmonize = 0;    // Weep
+        float fReverse = 0;    // Recast
         float fBitDepth = 0.f;    // Torture
         float fRandomSpeed = 0;    // Randomize closing speed
         float fDryMix = 0.f;    // Entry

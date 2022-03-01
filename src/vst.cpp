@@ -168,6 +168,11 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
                             fHarmonize = ( float ) value;
                         break;
 
+                    case kReverseId:
+                        if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
+                            fReverse = ( float ) value;
+                        break;
+
                     case kBitDepthId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
                             fBitDepth = ( float ) value;
@@ -328,6 +333,10 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
     if ( state->read( &savedHarmonize, sizeof ( float )) != kResultOk )
         return kResultFalse;
 
+    float savedReverse = 0.f;
+    if ( state->read( &savedReverse, sizeof ( float )) != kResultOk )
+        return kResultFalse;
+
     float savedBitDepth = 0.f;
     if ( state->read( &savedBitDepth, sizeof ( float )) != kResultOk )
         return kResultFalse;
@@ -353,6 +362,7 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
    SWAP_32( savedPlaybackRate )
    SWAP_32( savedReverb )
    SWAP_32( savedHarmonize )
+   SWAP_32( savedReverse )
    SWAP_32( savedBitDepth )
    SWAP_32( savedRandomSpeed )
    SWAP_32( savedDryMix )
@@ -370,6 +380,7 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
     fPlaybackRate = savedPlaybackRate;
     fReverb = savedReverb;
     fHarmonize = savedHarmonize;
+    fReverse = savedReverse;
     fBitDepth = savedBitDepth;
     fRandomSpeed = savedRandomSpeed;
     fDryMix = savedDryMix;
@@ -425,6 +436,7 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
     float toSavePlaybackRate = fPlaybackRate;
     float toSaveReverb = fReverb;
     float toSaveHarmonize = fHarmonize;
+    float toSaveReverse = fReverse;
     float toSaveBitDepth = fBitDepth;
     float toSaveRandomSpeed = fRandomSpeed;
     float toSaveDryMix = fDryMix;
@@ -443,6 +455,7 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
    SWAP_32( toSavePlaybackRate )
    SWAP_32( toSaveReverb )
    SWAP_32( toSaveHarmonize )
+   SWAP_32( toSaveReverse )
    SWAP_32( toSaveBitDepth )
    SWAP_32( toSaveRandomSpeed )
    SWAP_32( toSaveDryMix )
@@ -460,6 +473,7 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
     state->write( &toSavePlaybackRate, sizeof( float ));
     state->write( &toSaveReverb, sizeof( float ));
     state->write( &toSaveHarmonize, sizeof( float ));
+    state->write( &toSaveReverse, sizeof( float ));
     state->write( &toSaveBitDepth, sizeof( float ));
     state->write( &toSaveRandomSpeed, sizeof( float ));
     state->write( &toSaveDryMix, sizeof( float ));
@@ -596,7 +610,8 @@ void Darvaza::syncModel()
     pluginProcess->bitCrusher->setAmount( fBitDepth );
     pluginProcess->setResampleRate( fResampleRate );
     pluginProcess->setPlaybackRate( fPlaybackRate );
-    pluginProcess->enableHarmonize( Calc::toBool( fHarmonize ));
+    pluginProcess->enableReverse( Calc::toBool( fReverse ));
+    pluginProcess->setHarmony( fHarmonize );
     pluginProcess->enableReverb( Calc::toBool( fReverb ));
     pluginProcess->setDryMix( fDryMix );
 }

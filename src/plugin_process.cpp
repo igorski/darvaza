@@ -256,14 +256,64 @@ void PluginProcess::setPlaybackRate( float value )
     }
 }
 
+void PluginProcess::setHarmony( float value )
+{
+    _harmonize = value;
+
+    if ( !isHarmonized() ) {
+        return;
+    }
+
+    // determine scale by integral value
+
+    float odd  = 1.f;
+    float even = 1.f;
+    int scaled = ( int ) round( 5.f * value );
+    switch ( scaled ) {
+        // major
+        default:
+        case 0:
+            odd  = -1; // major 7th
+            even = -8; // major 3rd
+            break;
+        // mixolydian
+        case 1:
+            odd  = -2; // minor 7th
+            even = -8; // major 3rd
+            break;
+        // augmented
+        case 2:
+            odd  = -4; // augmented 5th
+            even = -8; // major 3rd
+            break;
+        // "neutral"
+        case 3:
+            odd  = -5; // 5th
+            even = -10; // 2nd
+            break;
+        // minor
+        case 4:
+            odd = -2; // minor 7th
+            even = -9; // minor 3rd
+            break;
+        // diminished
+        case 5:
+            odd = -6; // diminished 5th / tritone
+            even = -9; // minor 3rd
+            break;
+    }
+    _oddPitch  = Calc::pitchDown( odd );
+    _evenPitch = Calc::pitchDown( even );
+}
+
 void PluginProcess::enableReverb( bool enabled )
 {
     _reverbEnabled = enabled;
 }
 
-void PluginProcess::enableHarmonize( bool enabled )
+void PluginProcess::enableReverse( bool enabled )
 {
-    _harmonize = enabled;
+    _reverse = enabled;
 }
 
 /* other */

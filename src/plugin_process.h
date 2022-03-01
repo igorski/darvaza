@@ -87,10 +87,11 @@ class PluginProcess {
         void resetGates();
         void clearRecordBuffer();
 
-        void setPlaybackRate( float value );
         void setResampleRate( float value );
+        void setPlaybackRate( float value );
+        void setHarmony( float value );
         void enableReverb( bool enabled );
-        void enableHarmonize( bool enabled );
+        void enableReverse( bool enabled );
 
         // child processors
 
@@ -153,17 +154,24 @@ class PluginProcess {
         float _playbackRate = MIN_PLAYBACK_SPEED; // 1 == 100% (no change), < 1 is lower playback speed
         float _fSampleIncr;
         int   _sampleIncr;
-        bool  _harmonize = false;
+        bool  _reverse = false;
+        float _harmonize = 0.f;
+        float _oddPitch = 1.f;
+        float _evenPitch = 1.f;
 
         std::vector<LowPassFilter*> _lowPassFilters;
         std::vector<Reverb*> _reverbs;
 
         inline bool isSlowedDown() {
-            return _playbackRate < 1.f || _harmonize;
+            return _playbackRate < 1.f || isHarmonized();
         }
 
         inline bool isDownSampled() {
             return _downSampleAmount > 1.f;
+        }
+
+        inline bool isHarmonized() {
+            return _harmonize > 0.f;
         }
 
         inline bool hasRandomizedSpeed() {

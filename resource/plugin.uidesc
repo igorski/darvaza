@@ -61,7 +61,7 @@
 
         <!-- Regret -->
         <view
-              control-tag="Unit1::resampleRateParam" class="CKnob" origin="481, 157" size="70, 70"
+              control-tag="Unit1::resampleRateParam" class="CKnob" origin="481, 158" size="70, 70"
               angle-range="270" angle-start="135" autosize="right top"
               background-offset="0, 0" circle-drawing="true" corona-color="#e20000" corona-dash-dot="false"
               corona-drawing="true" corona-from-center="false" corona-inset="5" corona-inverted="false"
@@ -85,7 +85,7 @@
 
         <!-- Dwell -->
         <view
-              control-tag="Unit1::reverbParam" class="CCheckBox" origin="290, 433" size="70, 70"
+              control-tag="Unit1::reverbParam" class="CCheckBox" origin="215, 414" size="70, 70"
               autosize-to-fit="false"
               background-offset="0, 0" boxfill-color="#1f0f13" autosize="bottom"
               boxframe-color="#1f0f13" checkmark-color="#e20000"
@@ -94,9 +94,21 @@
               title="" transparent="false" wants-focus="true" wheel-inc-value="0.1"
         />
 
-        <!-- Chant -->
+        <!-- Weep -->
         <view
-              control-tag="Unit1::harmonizeParam" class="CCheckBox" origin="290, 485" size="70, 70"
+              control-tag="Unit1::harmonizeParam" class="CKnob" origin="336, 439" size="70, 70"
+              angle-range="270" angle-start="135" autosize="right top"
+              background-offset="0, 0" circle-drawing="true" corona-color="#e20000" corona-dash-dot="false"
+              corona-drawing="true" corona-from-center="false" corona-inset="5" corona-inverted="false"
+              corona-line-cap-butt="false" corona-outline="true" corona-outline-width-add="0" default-value="0"
+              handle-color="#e20000" handle-line-width="7" handle-shadow-color="~ GreyCColor" max-value="1"
+              min-value="0" mouse-enabled="true" opacity="1" skip-handle-drawing="true" transparent="false"
+              value-inset="5" wants-focus="true" wheel-inc-value="0.1" zoom-factor="1.5"
+        />
+
+        <!-- Recast -->
+        <view
+              control-tag="Unit1::reverseParam" class="CCheckBox" origin="215, 466" size="70, 70"
               autosize-to-fit="false"
               background-offset="0, 0" boxfill-color="#1f0f13" autosize="bottom"
               boxframe-color="#1f0f13" checkmark-color="#e20000"
@@ -119,7 +131,7 @@
 
         <!-- Entry -->
         <view
-              control-tag="Unit1::dryMixParam" class="CKnob" origin="48, 157" size="70, 70"
+              control-tag="Unit1::dryMixParam" class="CKnob" origin="48, 158" size="70, 70"
               angle-range="270" angle-start="135" autosize="right top"
               background-offset="0, 0" circle-drawing="true" corona-color="#e20000" corona-dash-dot="false"
               corona-drawing="true" corona-from-center="false" corona-inset="5" corona-inverted="false"
@@ -130,7 +142,7 @@
         />
 
 <!-- AUTO-GENERATED CONTROLS END -->
-        <view class="CView" size="35, 7" origin="277, 560" bitmap="version" transparent="true" />
+        <view class="CView" size="37, 7" origin="274, 550" bitmap="version" transparent="true" />
     </template>
     <variables/>
     <custom>
@@ -173,8 +185,9 @@
        <control-tag name="Unit1::playbackRateParam" tag="5" />
        <control-tag name="Unit1::reverbParam" tag="6" />
        <control-tag name="Unit1::harmonizeParam" tag="7" />
-       <control-tag name="Unit1::randomSpeedParam" tag="9" />
-       <control-tag name="Unit1::dryMixParam" tag="10" />
+       <control-tag name="Unit1::reverseParam" tag="8" />
+       <control-tag name="Unit1::randomSpeedParam" tag="10" />
+       <control-tag name="Unit1::dryMixParam" tag="11" />
 
 <!-- AUTO-GENERATED TAGS END -->
     </control-tags>

@@ -123,8 +123,15 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
         USTRING( "Dwell" ), 0, 1, 0, ParameterInfo::kCanAutomate, kReverbId, unitId
     );
 
+    RangeParameter* harmonizeParam = new RangeParameter(
+        USTRING( "Weep" ), kHarmonizeId, USTRING( "undefined" ),
+        0, 1, 0,
+        0, ParameterInfo::kCanAutomate, unitId
+    );
+    parameters.addParameter( harmonizeParam );
+
     parameters.addParameter(
-        USTRING( "Chant" ), 0, 1, 0, ParameterInfo::kCanAutomate, kHarmonizeId, unitId
+        USTRING( "Recast" ), 0, 1, 0, ParameterInfo::kCanAutomate, kReverseId, unitId
     );
 
     RangeParameter* bitDepthParam = new RangeParameter(
@@ -204,6 +211,10 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         if ( state->read( &savedHarmonize, sizeof( float )) != kResultOk )
             return kResultFalse;
 
+        float savedReverse = 1.f;
+        if ( state->read( &savedReverse, sizeof( float )) != kResultOk )
+            return kResultFalse;
+
         float savedBitDepth = 1.f;
         if ( state->read( &savedBitDepth, sizeof( float )) != kResultOk )
             return kResultFalse;
@@ -229,6 +240,7 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
     SWAP_32( savedPlaybackRate )
     SWAP_32( savedReverb )
     SWAP_32( savedHarmonize )
+    SWAP_32( savedReverse )
     SWAP_32( savedBitDepth )
     SWAP_32( savedRandomSpeed )
     SWAP_32( savedDryMix )
@@ -245,6 +257,7 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         setParamNormalized( kPlaybackRateId, savedPlaybackRate );
         setParamNormalized( kReverbId, savedReverb );
         setParamNormalized( kHarmonizeId, savedHarmonize );
+        setParamNormalized( kReverseId, savedReverse );
         setParamNormalized( kBitDepthId, savedBitDepth );
         setParamNormalized( kRandomSpeedId, savedRandomSpeed );
         setParamNormalized( kDryMixId, savedDryMix );
@@ -423,6 +436,11 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
             return kResultTrue;
 
         case kHarmonizeId:
+            sprintf( text, "%.2d %%", ( int ) ( valueNormalized * 100.f ));
+            Steinberg::UString( string, 128 ).fromAscii( text );
+            return kResultTrue;
+
+        case kReverseId:
             sprintf( text, "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;

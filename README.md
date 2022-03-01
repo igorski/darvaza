@@ -4,10 +4,10 @@ Darvaza is a VST/AU plug-in which provides a gating effect. The gate can use dif
 and its speed is individually controllable across channels. The gates oscillators are synchronized to the host
 tempo and time signature. What sets the plugin apart from the usual oscillator based gates is that the gate functions
 using _quid pro quo_. When the gate closes on your input signal, you get a signal in return. This signal
-is based on your input, but a plethora of things have gone wrong with it. Basically you your incoming sound
+is based on your input, but a plethora of things have gone wrong with it. Basically you get your incoming sound
 as if it was part of a bad dream.
 
-If you must know _exact details_, the returned sound can be time stretched, down sampled, bit crushed,
+If you must know _exact details_, the returned sound can be time stretched, down sampled, reversed, bit crushed,
 reverberated and frozen. Kinda what you'd imagine is left of a soul after all Hell has chewed it out.
 
 ## On compatibility

@@ -53,6 +53,7 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
     bool playFromRecordBuffer = isSlowedDown() || isDownSampled();
     bool randomizeSpeed = hasRandomizedSpeed();
+    bool harmonize = isHarmonized();
 
     for ( int32 c = 0; c < numInChannels; ++c )
     {
@@ -94,10 +95,10 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
             // calculate iterator size when reading from recorded buffer
             // this is determined by the down sampling amount (defined in _fSampleIncr)
             // and further more by the playback rate (for playback speed)
-            // in _harmonize mode, the playback rate is determined by the desired pitch shift
+            // in harmonize mode, the playback rate is determined by the desired pitch shift
 
-            if ( _harmonize ) {
-                incr = _fSampleIncr * Calc::pitchDown( isOddChannel ? 2 : 5 );
+            if ( harmonize ) {
+                incr = _fSampleIncr * ( isOddChannel ? _oddPitch : _evenPitch );
             } else {
                 incr = _fSampleIncr * _playbackRate;
             }
@@ -135,9 +136,15 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
                     channelPreMixBuffer[ i ] = nextSample + DITHER_DC_OFFSET + DITHER_AMPLITUDE * ( r1 - r2 );
                 }
 
-                if (( readPointer += incr ) > maxReadOffset ) {
-                    // don't go to 0.f but align with current write offset to play currently incoming audio
-                    readPointer = ( float ) _writePointer;
+                if ( _reverse ) {
+                    if (( readPointer -= incr ) < 0 ) {
+                        readPointer = maxReadOffset;
+                    }
+                } else {
+                    if (( readPointer += incr ) > maxReadOffset ) {
+                        // don't go to 0.f but align with current write offset to play currently incoming audio
+                        readPointer = ( harmonize ? 0.f : ( float ) _writePointer );
+                    }
                 }
             }
             _lastSamples[ c ] = lastSample;

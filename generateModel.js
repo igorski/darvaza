@@ -86,7 +86,7 @@ const MODEL = [
         descr: 'Regret',
         unitDescr: 'Hz',
         value: { min: '0.f', max: '1.f', def: '0.f', type: 'percent' },
-        ui: { x: 481, y: 157, w: 70, h: 70 },
+        ui: { x: 481, y: 158, w: 70, h: 70 },
         customDescr: 'sprintf( text, "%.2d Hz", ( int ) (( Igorski::VST::SAMPLE_RATE - Igorski::PluginProcess::MIN_SAMPLE_RATE ) * abs( valueNormalized - 1.f )) + ( int ) Igorski::PluginProcess::MIN_SAMPLE_RATE );'
     },
     {
@@ -101,13 +101,19 @@ const MODEL = [
         name: 'reverb',
         descr: 'Dwell',
         value: { min: '0', max: '1', def: '0', type: 'bool' },
-        ui: { x: 290, y: 433, w: 70, h: 70 }
+        ui: { x: 215, y: 414, w: 70, h: 70 }
     },
     {
         name: 'harmonize',
-        descr: 'Chant',
+        descr: 'Weep',
+        value: { min: '0', max: '1', def: '0', type: 'percent' },
+        ui: { x: 336, y: 439, w: 70, h: 70 }
+    },
+    {
+        name: 'reverse',
+        descr: 'Recast',
         value: { min: '0', max: '1', def: '0', type: 'bool' },
-        ui: { x: 290, y: 485, w: 70, h: 70 }
+        ui: { x: 215, y: 466, w: 70, h: 70 }
     },
     {
         name: 'bitDepth',
@@ -145,7 +151,7 @@ const MODEL = [
         descr: 'Entry',
         unitDescr: '%',
         value: { min: '0.f', max: '1.f', def: '0.f', type: 'percent' },
-        ui: { x: 48, y: 157, w: 70, h: 70 }
+        ui: { x: 48, y: 158, w: 70, h: 70 }
     }
 ];
 
