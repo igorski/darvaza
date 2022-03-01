@@ -261,13 +261,13 @@ function generateVstImpl() {
     if ( state->read( &${saved}, sizeof ( float )) != kResultOk )
         return kResultFalse;`);
 
-        setStateSwapLines.push(`   SWAP_32( ${saved} )`);   // byte swap
+        setStateSwapLines.push(`    SWAP_32( ${saved} )`);   // byte swap
         setStateApplyLines.push(`    ${model} = ${saved};`); // assignment to model
 
         // 3. Darvaza::getState
 
         getStateLines.push(`    float ${toSave} = ${model};`);
-        getStateSwapLines.push(`   SWAP_32( ${toSave} )`);   // byte swap
+        getStateSwapLines.push(`    SWAP_32( ${toSave} )`);   // byte swap
         getStateApplyLines.push(`    state->write( &${toSave}, sizeof( float ));` );
     });
 
@@ -348,7 +348,7 @@ function generateController() {
             return kResultFalse;`);
 
         // endian swap
-        setStateSwapLines.push(`    SWAP_32( ${saved} )`);
+        setStateSwapLines.push(`     SWAP_32( ${saved} )`);
 
         // set param normalized
         setStateSetParamLines.push(`        setParamNormalized( ${paramId}, ${saved} );`);

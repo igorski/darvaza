@@ -104,6 +104,7 @@ class Darvaza : public AudioEffect
 // --- AUTO-GENERATED END
 
         float outputGainOld; // for visualizing output gain in DAW
+        bool _bypass = false;
 
         int32 currentProcessMode;
         Igorski::PluginProcess* pluginProcess;

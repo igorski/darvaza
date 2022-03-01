@@ -157,6 +157,11 @@ tresult PLUGIN_API PluginController::initialize( FUnknown* context )
 
 // --- AUTO-GENERATED END
 
+    // Bypass
+	parameters.addParameter(
+        STR16( "Bypass" ), nullptr, 1, 0, ParameterInfo::kCanAutomate | ParameterInfo::kIsBypass, kBypassId
+    );
+
     // initialization
 
     String str( "Darvaza" );
@@ -229,23 +234,29 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
 
 // --- AUTO-GENERATED SETSTATE END
 
+    int32 savedBypass = 0;
+    if ( state->read( &savedBypass, sizeof( int32 )) != kResultOk )
+        return kResultFalse;
+
 #if BYTEORDER == kBigEndian
 
 // --- AUTO-GENERATED SETSTATE SWAP START
-    SWAP_32( savedOddSpeed )
-    SWAP_32( savedEvenSpeed )
-    SWAP_32( savedLinkGates )
-    SWAP_32( savedWaveform )
-    SWAP_32( savedResampleRate )
-    SWAP_32( savedPlaybackRate )
-    SWAP_32( savedReverb )
-    SWAP_32( savedHarmonize )
-    SWAP_32( savedReverse )
-    SWAP_32( savedBitDepth )
-    SWAP_32( savedRandomSpeed )
-    SWAP_32( savedDryMix )
+     SWAP_32( savedOddSpeed )
+     SWAP_32( savedEvenSpeed )
+     SWAP_32( savedLinkGates )
+     SWAP_32( savedWaveform )
+     SWAP_32( savedResampleRate )
+     SWAP_32( savedPlaybackRate )
+     SWAP_32( savedReverb )
+     SWAP_32( savedHarmonize )
+     SWAP_32( savedReverse )
+     SWAP_32( savedBitDepth )
+     SWAP_32( savedRandomSpeed )
+     SWAP_32( savedDryMix )
 
 // --- AUTO-GENERATED SETSTATE SWAP END
+
+    SWAP_32( savedBypass );
 
 #endif
 // --- AUTO-GENERATED SETSTATE SETPARAM START
@@ -263,6 +274,8 @@ tresult PLUGIN_API PluginController::setComponentState( IBStream* state )
         setParamNormalized( kDryMixId, savedDryMix );
 
 // --- AUTO-GENERATED SETSTATE SETPARAM END
+
+        setParamNormalized( kBypassId, savedBypass ? 1 : 0 );
 
         state->seek( sizeof ( float ), IBStream::kIBSeekCur );
     }
@@ -369,7 +382,7 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
 // --- AUTO-GENERATED GETPARAM START
 
         case kOddSpeedId:
-            
+
             tmpValue = Igorski::Calc::gateSubdivision( valueNormalized );
             if ( tmpValue <= 0.5f ) {
                 sprintf( text, "%.d measures", ( int ) ( 1.f / tmpValue ));
@@ -386,7 +399,7 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
             return kResultTrue;
 
         case kEvenSpeedId:
-            
+
             tmpValue = Igorski::Calc::gateSubdivision( valueNormalized );
             if ( tmpValue <= 0.5f ) {
                 sprintf( text, "%.d measures", ( int ) ( 1.f / tmpValue ));

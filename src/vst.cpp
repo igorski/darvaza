@@ -189,6 +189,12 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
                         break;
 
 // --- AUTO-GENERATED PROCESS END
+
+                    case kBypassId:
+						if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value) == kResultTrue ) {
+							_bypass = value >= 0.5f;
+						}
+						break;
                 }
                 syncModel();
             }
@@ -245,23 +251,36 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
     void** in  = getChannelBuffersPointer( processSetup, data.inputs [ 0 ] );
     void** out = getChannelBuffersPointer( processSetup, data.outputs[ 0 ] );
 
-    // process the incoming sound!
-
     bool isDoublePrecision = ( data.symbolicSampleSize == kSample64 );
 
-    if ( isDoublePrecision ) {
-        // 64-bit samples, e.g. Reaper64
-        pluginProcess->process<double>(
-            ( double** ) in, ( double** ) out, numInChannels, numOutChannels,
-            data.numSamples, sampleFramesSize
-        );
-    }
-    else {
-        // 32-bit samples, e.g. Ableton Live, Bitwig Studio... (oddly enough also when 64-bit?)
-        pluginProcess->process<float>(
-            ( float** ) in, ( float** ) out, numInChannels, numOutChannels,
-            data.numSamples, sampleFramesSize
-        );
+	if ( _bypass )
+	{
+        // bypass mode, ensure output equals input
+
+		for ( int32 i = 0; i < numInChannels; i++ ) {
+			if ( in[ i ] != out[ i ]) {
+				memcpy( out[ i ], in[ i ], sampleFramesSize );
+			}
+		}
+	}
+	else
+    {
+        // process the incoming sound!
+
+        if ( isDoublePrecision ) {
+            // 64-bit samples, e.g. Reaper64
+            pluginProcess->process<double>(
+                ( double** ) in, ( double** ) out, numInChannels, numOutChannels,
+                data.numSamples, sampleFramesSize
+            );
+        }
+        else {
+            // 32-bit samples, e.g. Ableton Live...
+            pluginProcess->process<float>(
+                ( float** ) in, ( float** ) out, numInChannels, numOutChannels,
+                data.numSamples, sampleFramesSize
+            );
+        }
     }
 
     // output flags
@@ -351,23 +370,29 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
 
 // --- AUTO-GENERATED SETSTATE END
 
+    int32 savedBypass = 0;
+    if ( state->read( &savedBypass, sizeof ( int32 )) != kResultOk )
+        return kResultFalse;
+
 #if BYTEORDER == kBigEndian
 
 // --- AUTO-GENERATED SETSTATE SWAP START
-   SWAP_32( savedOddSpeed )
-   SWAP_32( savedEvenSpeed )
-   SWAP_32( savedLinkGates )
-   SWAP_32( savedWaveform )
-   SWAP_32( savedResampleRate )
-   SWAP_32( savedPlaybackRate )
-   SWAP_32( savedReverb )
-   SWAP_32( savedHarmonize )
-   SWAP_32( savedReverse )
-   SWAP_32( savedBitDepth )
-   SWAP_32( savedRandomSpeed )
-   SWAP_32( savedDryMix )
+    SWAP_32( savedOddSpeed )
+    SWAP_32( savedEvenSpeed )
+    SWAP_32( savedLinkGates )
+    SWAP_32( savedWaveform )
+    SWAP_32( savedResampleRate )
+    SWAP_32( savedPlaybackRate )
+    SWAP_32( savedReverb )
+    SWAP_32( savedHarmonize )
+    SWAP_32( savedReverse )
+    SWAP_32( savedBitDepth )
+    SWAP_32( savedRandomSpeed )
+    SWAP_32( savedDryMix )
 
 // --- AUTO-GENERATED SETSTATE SWAP END
+
+    SWAP_32( savedBypass );
 
 #endif
 
@@ -386,6 +411,8 @@ tresult PLUGIN_API Darvaza::setState( IBStream* state )
     fDryMix = savedDryMix;
 
 // --- AUTO-GENERATED SETSTATE APPLY END
+
+    _bypass = savedBypass > 0;
 
     syncModel();
 
@@ -443,24 +470,27 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
 
 // --- AUTO-GENERATED GETSTATE END
 
+    int32 toSaveBypass = _bypass ? 1 : 0;
 
 #if BYTEORDER == kBigEndian
 
 // --- AUTO-GENERATED GETSTATE SWAP START
-   SWAP_32( toSaveOddSpeed )
-   SWAP_32( toSaveEvenSpeed )
-   SWAP_32( toSaveLinkGates )
-   SWAP_32( toSaveWaveform )
-   SWAP_32( toSaveResampleRate )
-   SWAP_32( toSavePlaybackRate )
-   SWAP_32( toSaveReverb )
-   SWAP_32( toSaveHarmonize )
-   SWAP_32( toSaveReverse )
-   SWAP_32( toSaveBitDepth )
-   SWAP_32( toSaveRandomSpeed )
-   SWAP_32( toSaveDryMix )
+    SWAP_32( toSaveOddSpeed )
+    SWAP_32( toSaveEvenSpeed )
+    SWAP_32( toSaveLinkGates )
+    SWAP_32( toSaveWaveform )
+    SWAP_32( toSaveResampleRate )
+    SWAP_32( toSavePlaybackRate )
+    SWAP_32( toSaveReverb )
+    SWAP_32( toSaveHarmonize )
+    SWAP_32( toSaveReverse )
+    SWAP_32( toSaveBitDepth )
+    SWAP_32( toSaveRandomSpeed )
+    SWAP_32( toSaveDryMix )
 
 // --- AUTO-GENERATED GETSTATE SWAP END
+
+    SWAP_32( toSaveBypass );
 
 #endif
 
@@ -479,6 +509,8 @@ tresult PLUGIN_API Darvaza::getState( IBStream* state )
     state->write( &toSaveDryMix, sizeof( float ));
 
 // --- AUTO-GENERATED GETSTATE APPLY END
+
+    state->write( &toSaveBypass, sizeof( int32 ));
 
     return kResultOk;
 }

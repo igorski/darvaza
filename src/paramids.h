@@ -45,6 +45,7 @@ enum
 
 // --- AUTO-GENERATED END
 
+	kBypassId, // bypass process
     kVuPPMId // for the Vu value return to host
 };
 
