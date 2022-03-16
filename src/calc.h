@@ -70,6 +70,16 @@ namespace Calc {
         return std::min( 1.f, std::max( -1.f, value ));
     }
 
+    inline float clampedOrSilent( float value )
+    {
+        return ( value > 1.f || value < -1.f ) ? 0.f : value;
+    }
+
+    inline double clampedOrSilent( double value )
+    {
+        return ( value > 1.0 || value < -1.0 ) ? 0.0 : value;
+    }
+
     // convenience method to round given number value to the nearest
     // multiple of valueToRoundTo
     // e.g. roundTo( 236.32, 10 ) == 240 and roundTo( 236.32, 5 ) == 235

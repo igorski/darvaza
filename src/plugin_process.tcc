@@ -147,7 +147,7 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
                     }
                 }
             }
-            _lastSamples[ c ] = Calc::capSample( lastSample );
+            _lastSamples[ c ] = lastSample;
         }
 
         // 3. run the pre mix effects that require no sample accurate property updates
@@ -206,7 +206,7 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
             // blend in the effect mix buffer for the gates value
 
-            channelOutBuffer[ i ] = ( SampleType ) ( tmpSample ) * gateLevel;
+            channelOutBuffer[ i ] = Calc::clampedOrSilent(( SampleType ) ( tmpSample ) * gateLevel );
 
             // blend in the dry signal (mixed to the negative of the gated signal)
             channelOutBuffer[ i ] += (( channelInBuffer[ i ] * ( 1.0 - gateLevel )) * dryMix );
