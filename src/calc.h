@@ -70,6 +70,11 @@ namespace Calc {
         return std::min( 1.f, std::max( -1.f, value ));
     }
 
+    inline double capSample( double value )
+    {
+        return std::min( 1.0, std::max( -1.0, value ));
+    }
+
     inline float clampedOrSilent( float value )
     {
         return ( value > 1.f || value < -1.f ) ? 0.f : value;
