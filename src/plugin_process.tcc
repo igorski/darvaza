@@ -142,8 +142,8 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
                     }
                 } else {
                     if (( readPointer += incr ) > maxReadOffset ) {
-                        // don't go to 0.f but align with current write offset to play currently incoming audio
-                        readPointer = ( harmonize ? 0.f : ( float ) _writePointer );
+                        // don't go to 0.f but align with last write offset to play currently incoming audio
+                        readPointer = ( harmonize ? 0.f : ( float ) writePointer );
                     }
                 }
             }
@@ -206,7 +206,7 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
             // blend in the effect mix buffer for the gates value
 
-            channelOutBuffer[ i ] = Calc::clampedOrSilent(( SampleType ) ( tmpSample ) * gateLevel );
+            channelOutBuffer[ i ] = Calc::capSample(( SampleType ) ( tmpSample ) * gateLevel );
 
             // blend in the dry signal (mixed to the negative of the gated signal)
             channelOutBuffer[ i ] += (( channelInBuffer[ i ] * ( 1.0 - gateLevel )) * dryMix );
