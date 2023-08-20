@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2020-2022 Igor Zinken - https://www.igorski.nl
+ * Copyright (c) 2020-2023 Igor Zinken - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -286,8 +286,8 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
     // output flags
 
     data.outputs[ 0 ].silenceFlags = false; // there should always be output
-    float outputGain = pluginProcess->limiter->getLinearGR();
-
+    
+    // float outputGain = pluginProcess->limiter->getLinearGR();
     //---4) Write output parameter changes-----------
     // IParameterChanges* outParamChanges = data.outputParameterChanges;
     // // a new value of VuMeter will be sent to the host
