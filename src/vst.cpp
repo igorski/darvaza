@@ -44,7 +44,7 @@ float VST::SAMPLE_RATE = 44100.f; // updated in setupProcessing()
 //------------------------------------------------------------------------
 Darvaza::Darvaza()
 : pluginProcess( nullptr )
-, outputGainOld( 0.f )
+// , outputGainOld( 0.f )
 , currentProcessMode( -1 ) // -1 means not initialized
 {
     // register its editor class (the same as used in vstentry.cpp)
@@ -96,7 +96,7 @@ tresult PLUGIN_API Darvaza::setActive (TBool state)
         sendTextMessage( "Darvaza::setActive (false)" );
 
     // reset output level meter
-    outputGainOld = 0.f;
+    // outputGainOld = 0.f;
 
     // call our parent setActive
     return AudioEffect::setActive( state );
@@ -289,16 +289,16 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
     float outputGain = pluginProcess->limiter->getLinearGR();
 
     //---4) Write output parameter changes-----------
-    IParameterChanges* outParamChanges = data.outputParameterChanges;
-    // a new value of VuMeter will be sent to the host
-    // (the host will send it back in sync to our controller for updating our editor)
-    if ( !isDoublePrecision && outParamChanges && outputGainOld != outputGain ) {
-        int32 index = 0;
-        IParamValueQueue* paramQueue = outParamChanges->addParameterData( kVuPPMId, index );
-        if ( paramQueue )
-            paramQueue->addPoint( 0, outputGain, index );
-    }
-    outputGainOld = outputGain;
+    // IParameterChanges* outParamChanges = data.outputParameterChanges;
+    // // a new value of VuMeter will be sent to the host
+    // // (the host will send it back in sync to our controller for updating our editor)
+    // if ( !isDoublePrecision && outParamChanges && outputGainOld != outputGain ) {
+    //     int32 index = 0;
+    //     IParamValueQueue* paramQueue = outParamChanges->addParameterData( kVuPPMId, index );
+    //     if ( paramQueue )
+    //         paramQueue->addPoint( 0, outputGain, index );
+    // }
+    // outputGainOld = outputGain;
     return kResultOk;
 }
 
@@ -524,16 +524,6 @@ tresult PLUGIN_API Darvaza::setupProcessing( ProcessSetup& newSetup )
     currentProcessMode = newSetup.processMode;
 
     VST::SAMPLE_RATE = newSetup.sampleRate;
-
-    // spotted to fire multiple times...
-
-    if ( pluginProcess != nullptr ) {
-        delete pluginProcess;
-    }
-
-    // TODO: creating a bunch of extra channels for no apparent reason?
-    // get the correct channel amount and don't allocate more than necessary...
-    pluginProcess = new PluginProcess( 6 );
 
     syncModel();
 
