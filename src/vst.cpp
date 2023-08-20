@@ -251,7 +251,8 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
     void** in  = getChannelBuffersPointer( processSetup, data.inputs [ 0 ] );
     void** out = getChannelBuffersPointer( processSetup, data.outputs[ 0 ] );
 
-    bool isDoublePrecision = ( data.symbolicSampleSize == kSample64 );
+    bool isDoublePrecision = data.symbolicSampleSize == kSample64;
+    bool isSilent = data.inputs[ 0 ].silenceFlags != 0;
 
 	if ( _bypass )
 	{
@@ -285,8 +286,11 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
 
     // output flags
 
-    data.outputs[ 0 ].silenceFlags = false; // there should always be output
-    
+    if ( isSilent ) {
+        // there should always be output (gate LFO's always run and there might be reverb tail)
+        data.outputs[ 0 ].silenceFlags = false;
+    }
+
     // float outputGain = pluginProcess->limiter->getLinearGR();
     //---4) Write output parameter changes-----------
     // IParameterChanges* outParamChanges = data.outputParameterChanges;
