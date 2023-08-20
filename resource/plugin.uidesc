@@ -142,7 +142,7 @@
         />
 
 <!-- AUTO-GENERATED CONTROLS END -->
-        <view class="CView" size="37, 7" origin="274, 550" bitmap="version" transparent="true" />
+        <view class="CView" size="39, 8" origin="273, 550" bitmap="version" />
     </template>
     <variables/>
     <custom>

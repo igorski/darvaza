@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2020-2022 Igor Zinken - https://www.igorski.nl
+ * Copyright (c) 2020-2023 Igor Zinken - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -44,7 +44,7 @@ float VST::SAMPLE_RATE = 44100.f; // updated in setupProcessing()
 //------------------------------------------------------------------------
 Darvaza::Darvaza()
 : pluginProcess( nullptr )
-, outputGainOld( 0.f )
+// , outputGainOld( 0.f )
 , currentProcessMode( -1 ) // -1 means not initialized
 {
     // register its editor class (the same as used in vstentry.cpp)
@@ -96,7 +96,7 @@ tresult PLUGIN_API Darvaza::setActive (TBool state)
         sendTextMessage( "Darvaza::setActive (false)" );
 
     // reset output level meter
-    outputGainOld = 0.f;
+    // outputGainOld = 0.f;
 
     // call our parent setActive
     return AudioEffect::setActive( state );
@@ -251,7 +251,8 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
     void** in  = getChannelBuffersPointer( processSetup, data.inputs [ 0 ] );
     void** out = getChannelBuffersPointer( processSetup, data.outputs[ 0 ] );
 
-    bool isDoublePrecision = ( data.symbolicSampleSize == kSample64 );
+    bool isDoublePrecision = data.symbolicSampleSize == kSample64;
+    bool isSilent = data.inputs[ 0 ].silenceFlags != 0;
 
 	if ( _bypass )
 	{
@@ -285,20 +286,23 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
 
     // output flags
 
-    data.outputs[ 0 ].silenceFlags = false; // there should always be output
-    float outputGain = pluginProcess->limiter->getLinearGR();
-
-    //---4) Write output parameter changes-----------
-    IParameterChanges* outParamChanges = data.outputParameterChanges;
-    // a new value of VuMeter will be sent to the host
-    // (the host will send it back in sync to our controller for updating our editor)
-    if ( !isDoublePrecision && outParamChanges && outputGainOld != outputGain ) {
-        int32 index = 0;
-        IParamValueQueue* paramQueue = outParamChanges->addParameterData( kVuPPMId, index );
-        if ( paramQueue )
-            paramQueue->addPoint( 0, outputGain, index );
+    if ( isSilent ) {
+        // there should always be output (gate LFO's always run and there might be reverb tail)
+        data.outputs[ 0 ].silenceFlags = false;
     }
-    outputGainOld = outputGain;
+
+    // float outputGain = pluginProcess->limiter->getLinearGR();
+    //---4) Write output parameter changes-----------
+    // IParameterChanges* outParamChanges = data.outputParameterChanges;
+    // // a new value of VuMeter will be sent to the host
+    // // (the host will send it back in sync to our controller for updating our editor)
+    // if ( !isDoublePrecision && outParamChanges && outputGainOld != outputGain ) {
+    //     int32 index = 0;
+    //     IParamValueQueue* paramQueue = outParamChanges->addParameterData( kVuPPMId, index );
+    //     if ( paramQueue )
+    //         paramQueue->addPoint( 0, outputGain, index );
+    // }
+    // outputGainOld = outputGain;
     return kResultOk;
 }
 
@@ -524,16 +528,6 @@ tresult PLUGIN_API Darvaza::setupProcessing( ProcessSetup& newSetup )
     currentProcessMode = newSetup.processMode;
 
     VST::SAMPLE_RATE = newSetup.sampleRate;
-
-    // spotted to fire multiple times...
-
-    if ( pluginProcess != nullptr ) {
-        delete pluginProcess;
-    }
-
-    // TODO: creating a bunch of extra channels for no apparent reason?
-    // get the correct channel amount and don't allocate more than necessary...
-    pluginProcess = new PluginProcess( 6 );
 
     syncModel();
 
