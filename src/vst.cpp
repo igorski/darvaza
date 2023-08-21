@@ -252,7 +252,8 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
     void** out = getChannelBuffersPointer( processSetup, data.outputs[ 0 ] );
 
     bool isDoublePrecision = data.symbolicSampleSize == kSample64;
-    bool isSilent = data.inputs[ 0 ].silenceFlags != 0;
+    bool isSilentInput  = data.inputs[ 0 ].silenceFlags != 0;
+    bool isSilentOutput = false;
 
 	if ( _bypass )
 	{
@@ -263,6 +264,7 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
 				memcpy( out[ i ], in[ i ], sampleFramesSize );
 			}
 		}
+        isSilentOutput = isSilentInput;
 	}
 	else
     {
@@ -286,11 +288,8 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
 
     // output flags
 
-    if ( isSilent ) {
-        // there should always be output (gate LFO's always run and there might be reverb tail)
-        data.outputs[ 0 ].silenceFlags = false;
-    }
-
+    data.outputs[ 0 ].silenceFlags = isSilentOutput ? (( uint64 ) 1 << numOutChannels ) - 1 : 0;
+   
     // float outputGain = pluginProcess->limiter->getLinearGR();
     //---4) Write output parameter changes-----------
     // IParameterChanges* outParamChanges = data.outputParameterChanges;
