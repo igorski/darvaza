@@ -19,7 +19,7 @@
 
 // The full name of the audio unit.
 // This is derived from the manufacturer and description key values
-#define kAUcomponentName Darvaza
+#define kAUcomponentName Igorski: Darvaza
 
 // Displayed Tags
 #define kAUcomponentTag Effects
