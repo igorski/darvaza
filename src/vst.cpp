@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2020-2023 Igor Zinken - https://www.igorski.nl
+ * Copyright (c) 2020-2024 Igor Zinken - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -50,7 +50,6 @@ Darvaza::Darvaza()
     // register its editor class (the same as used in vstentry.cpp)
     setControllerClass( VST::PluginControllerUID );
 
-    // should be created on setupProcessing, this however doesn't fire for Audio Unit using auval?
     pluginProcess = new PluginProcess( 2 );
 }
 
