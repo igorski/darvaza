@@ -20,7 +20,6 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include "../global.h"
 #include "../calc.h"
 #include "../plugin_process.h"
 #include "../paramids.h"
@@ -385,15 +384,15 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
 
             tmpValue = Igorski::Calc::gateSubdivision( valueNormalized );
             if ( tmpValue <= 0.5f ) {
-                sprintf( text, "%.d measures", ( int ) ( 1.f / tmpValue ));
+                snprintf( text, sizeof( text ), "%.d measures", static_cast<int>( 1.f / tmpValue ));
             } else if ( tmpValue == 1.f ) {
-                sprintf( text, "1 measure" );
+                snprintf( text, sizeof( text ), "1 measure" );
             } else if ( tmpValue == 4.f ) {
-                sprintf( text, "Quarter note" );
+                snprintf( text, sizeof( text ), "Quarter note" );
             } else if ( tmpValue == 8.f || tmpValue == 16.f ) {
-                sprintf( text, "%.fth note", tmpValue );
+                snprintf( text, sizeof( text ), "%.fth note", tmpValue );
             } else {
-                sprintf( text, "1/%.f measure", tmpValue );
+                snprintf( text, sizeof( text ), "1/%.f measure", tmpValue );
             }
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
@@ -402,87 +401,87 @@ tresult PLUGIN_API PluginController::getParamStringByValue( ParamID tag, ParamVa
 
             tmpValue = Igorski::Calc::gateSubdivision( valueNormalized );
             if ( tmpValue <= 0.5f ) {
-                sprintf( text, "%.d measures", ( int ) ( 1.f / tmpValue ));
+                snprintf( text, sizeof( text ), "%.d measures", static_cast<int>( 1.f / tmpValue ));
             } else if ( tmpValue == 1.f ) {
-                sprintf( text, "1 measure" );
+                snprintf( text, sizeof( text ), "1 measure" );
             } else if ( tmpValue == 4.f ) {
-                sprintf( text, "Quarter note" );
+                snprintf( text, sizeof( text ), "Quarter note" );
             } else if ( tmpValue == 8.f || tmpValue == 16.f ) {
-                sprintf( text, "%.fth note", tmpValue );
+                snprintf( text, sizeof( text ), "%.fth note", tmpValue );
             } else {
-                sprintf( text, "1/%.f measure", tmpValue );
+                snprintf( text, sizeof( text ), "1/%.f measure", tmpValue );
             }
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
         case kLinkGatesId:
-            sprintf( text, "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
+            snprintf( text, sizeof( text ), "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
         case kWaveformId:
             if ( valueNormalized >= 0.75f ) {
-                sprintf( text, "Square" );
+                snprintf( text, sizeof( text ), "Square" );
             } else if ( valueNormalized >= 0.5f ) {
-                sprintf( text, "Sawtooth" );
+                snprintf( text, sizeof( text ), "Sawtooth" );
             } else if ( valueNormalized >= 0.25f) {
-                sprintf( text, "Triangle" );
+                snprintf( text, sizeof( text ), "Triangle" );
             } else {
-                sprintf( text, "Sine" );
+                snprintf( text, sizeof( text ), "Sine" );
             }
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
         case kResampleRateId:
-            sprintf( text, "%.2d Hz", ( int ) (( Igorski::VST::SAMPLE_RATE - Igorski::PluginProcess::MIN_SAMPLE_RATE ) * abs( valueNormalized - 1.f )) + ( int ) Igorski::PluginProcess::MIN_SAMPLE_RATE );
+            snprintf( text, sizeof( text ), "%.2d Hz", static_cast<int>(( _sampleRate - Igorski::PluginProcess::MIN_SAMPLE_RATE ) * abs( valueNormalized - 1.f )) + static_cast<int>( Igorski::PluginProcess::MIN_SAMPLE_RATE ));
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
         case kPlaybackRateId:
-            sprintf( text, "%.2d %%", ( int ) (( abs( valueNormalized - 1.f ) * ( 100.f * Igorski::PluginProcess::MIN_PLAYBACK_SPEED )) + ( Igorski::PluginProcess::MIN_PLAYBACK_SPEED * 100.f )));
+            snprintf( text, sizeof( text ), "%.2d %%", static_cast<int>(( abs( valueNormalized - 1.f ) * ( 100.f * Igorski::PluginProcess::MIN_PLAYBACK_SPEED )) + ( Igorski::PluginProcess::MIN_PLAYBACK_SPEED * 100.f )));
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
         case kReverbId:
-            sprintf( text, "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
+            snprintf( text, sizeof( text ), "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
         case kHarmonizeId:
-            sprintf( text, "%.2d %%", ( int ) ( valueNormalized * 100.f ));
+            snprintf( text, sizeof( text ), "%.2d %%", static_cast<int>( valueNormalized * 100.f ));
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
         case kReverseId:
-            sprintf( text, "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
+            snprintf( text, sizeof( text ), "%s", ( valueNormalized == 0 ) ? "Off" : "On" );
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
         case kBitDepthId:
-            sprintf( text, "%.d Bits", ( int ) ( 15 * abs( valueNormalized - 1.f )) + 1 );
+            snprintf( text, sizeof( text ), "%.d Bits", static_cast<int>( 15 * abs( valueNormalized - 1.f )) + 1 );
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
         case kRandomSpeedId:
             tmpValue = Igorski::Calc::gateSubdivision( valueNormalized );
             if ( tmpValue <= 0.25f ) {
-                sprintf( text, "Off" );
+                snprintf( text, sizeof( text ), "Off" );
             } else if ( tmpValue <= 0.5f ) {
-                sprintf( text, "%.d measures", ( int ) ( 1.f / tmpValue ));
+                snprintf( text, sizeof( text ), "%.d measures", static_cast<int>( 1.f / tmpValue ));
             } else if ( tmpValue == 1.f ) {
-                sprintf( text, "1 measure" );
+                snprintf( text, sizeof( text ), "1 measure" );
             } else if ( tmpValue == 4.f ) {
-                sprintf( text, "Quarter note" );
+                snprintf( text, sizeof( text ), "Quarter note" );
             } else if ( tmpValue == 8.f || tmpValue == 16.f ) {
-                sprintf( text, "%.fth note", tmpValue );
+                snprintf( text, sizeof( text ), "%.fth note", tmpValue );
             } else {
-                sprintf( text, "1/%.f measure", tmpValue );
+                snprintf( text, sizeof( text ), "1/%.f measure", tmpValue );
             }
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
         case kDryMixId:
-            sprintf( text, "%.2d %%", ( int ) ( valueNormalized * 100.f ));
+            snprintf( text, sizeof( text ), "%.2d %%", static_cast<int>( valueNormalized * 100.f ));
             Steinberg::UString( string, 128 ).fromAscii( text );
             return kResultTrue;
 
@@ -506,13 +505,29 @@ tresult PLUGIN_API PluginController::getParamValueByString( ParamID tag, TChar* 
             double tmp = 0.0;
             if (wrapper.scanFloat (tmp))
             {
-                valueNormalized = expf (logf (10.f) * (float)tmp / 20.f);
+                valueNormalized = expf( logf( 10.f ) * static_cast<float>( tmp ) / 20.f );
                 return kResultTrue;
             }
             return kResultFalse;
         }
     }*/
     return EditControllerEx1::getParamValueByString( tag, string, valueNormalized );
+}
+
+tresult PLUGIN_API PluginController::notify( Steinberg::Vst::IMessage* message )
+{
+    if ( !message ) {
+        return Steinberg::kInvalidArgument;
+    }
+    if ( strcmp( message->getMessageID(), "setSampleRate" ) == 0 )
+    {
+        double rate = 0.0;
+        if ( message->getAttributes()->getFloat( "sampleRate", rate ) == Steinberg::kResultTrue ) {
+            this->_sampleRate = static_cast<float>( rate );
+        }
+        return Steinberg::kResultOk;
+    }
+    return Steinberg::Vst::EditController::notify( message );
 }
 
 //------------------------------------------------------------------------

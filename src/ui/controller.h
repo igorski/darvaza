@@ -25,8 +25,9 @@
 
 #include "vstgui/plugin-bindings/vst3editor.h"
 #include "public.sdk/source/vst/vsteditcontroller.h"
-
 #include <vector>
+
+#include "../global.h"
 
 namespace Steinberg {
 namespace Vst {
@@ -63,14 +64,15 @@ class PluginController : public EditControllerEx1, public IMidiMapping, public V
                                                   String128 string ) SMTG_OVERRIDE;
         tresult PLUGIN_API getParamValueByString( ParamID tag, TChar* string,
                                                   ParamValue& valueNormalized ) SMTG_OVERRIDE;
+        tresult PLUGIN_API notify( Steinberg::Vst::IMessage* message ) SMTG_OVERRIDE;
 
         //---from ComponentBase-----
         tresult receiveText( const char* text ) SMTG_OVERRIDE;
 
         //---from IMidiMapping-----------------
-        tresult PLUGIN_API getMidiControllerAssignment (int32 busIndex, int16 channel,
+        tresult PLUGIN_API getMidiControllerAssignment( int32 busIndex, int16 channel,
                                                         CtrlNumber midiControllerNumber,
-                                                        ParamID& tag) SMTG_OVERRIDE;
+                                                        ParamID& tag ) SMTG_OVERRIDE;
 
         //---from VST3EditorDelegate-----------
         IController* createSubController( UTF8StringPtr name, const IUIDescription* description,
@@ -91,6 +93,8 @@ class PluginController : public EditControllerEx1, public IMidiMapping, public V
         UIMessageControllerList uiMessageControllers;
 
         String128 defaultMessageText;
+
+        float _sampleRate = Igorski::VST::DEFAULT_SAMPLE_RATE;
 };
 
 //------------------------------------------------------------------------
