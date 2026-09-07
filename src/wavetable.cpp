@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2014-2022 Igor Zinken - https://www.igorski.nl
+ * Copyright (c) 2014-2026 Igor Zinken - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -26,14 +26,13 @@ namespace Igorski {
 
 /* constructor / destructor */
 
-WaveTable::WaveTable( int aTableLength, float aFrequency )
+WaveTable::WaveTable( int tableLength, float frequency )
 {
-    tableLength  = aTableLength;
-    _accumulator = 0.0;
-    _buffer      = generateSilentBuffer( tableLength );
-    setFrequency( aFrequency );
-
-    _sampleRateOverLength = ( float ) VST::SAMPLE_RATE / ( float ) tableLength;
+    _tableLength = tableLength;
+    _accumulator = 0.f;
+    _buffer      = generateSilentBuffer( _tableLength );
+    setFrequency( frequency );
+    setSampleRate( VST::DEFAULT_SAMPLE_RATE );
 }
 
 WaveTable::~WaveTable()
@@ -43,9 +42,15 @@ WaveTable::~WaveTable()
 
 /* public methods */
 
-void WaveTable::setFrequency( float aFrequency )
+void WaveTable::setSampleRate( float sampleRate )
 {
-    _frequency = aFrequency;
+    _sampleRate = sampleRate;
+    _sampleRateOverLength = sampleRate / static_cast<float>( _tableLength );
+}
+
+void WaveTable::setFrequency( float frequency )
+{
+    _frequency = frequency;
 }
 
 float WaveTable::getFrequency()
@@ -55,10 +60,11 @@ float WaveTable::getFrequency()
 
 bool WaveTable::hasContent()
 {
-    for ( int i = 0; i < tableLength; ++i )
+    for ( int i = 0; i < _tableLength; ++i )
     {
-        if ( _buffer[ i ] != 0.0 )
+        if ( _buffer[ i ] != 0.0 ) {
             return true;
+        }
     }
     return false;
 }
@@ -80,33 +86,31 @@ float* WaveTable::getBuffer()
 
 void WaveTable::setBuffer( float* aBuffer )
 {
-    if ( _buffer != nullptr )
+    if ( _buffer != nullptr ) {
         delete[] _buffer;
-
+    }
     _buffer = aBuffer;
 }
 
 void WaveTable::cloneTable( WaveTable* waveTable )
 {
-    if ( tableLength != waveTable->tableLength )
+    if ( _tableLength != waveTable->_tableLength )
     {
         delete[] _buffer;
-        tableLength = waveTable->tableLength;
-        _buffer     = generateSilentBuffer( tableLength );
+        _tableLength = waveTable->_tableLength;
+        _buffer = generateSilentBuffer( _tableLength );
     }
 
-    for ( int i = 0; i < tableLength; ++i ) {
+    for ( int i = 0; i < _tableLength; ++i ) {
         _buffer[ i ] = waveTable->_buffer[ i ];
     }
 }
 
-WaveTable* WaveTable::clone()
+void WaveTable::clone( WaveTable* source )
 {
-    WaveTable* out    = new WaveTable( tableLength, _frequency );
-    out->_accumulator = _accumulator;
-    out->cloneTable( this );
-
-    return out;
+    _frequency = source->getFrequency();
+    _accumulator = source->getAccumulator();
+    cloneTable( source );
 }
 
 float* WaveTable::generateSilentBuffer( int bufferSize )

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2020-2022 Igor Zinken - https://www.igorski.nl
+ * Copyright (c) 2020-2026 Igor Zinken - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -28,84 +28,94 @@
 
 namespace Igorski {
 
-PluginProcess::PluginProcess( int amountOfChannels ) {
+PluginProcess::PluginProcess( int amountOfChannels, float sampleRate, int maxBufferSize ) {
     _amountOfChannels = amountOfChannels;
-    _maxDownSample    = VST::SAMPLE_RATE / MIN_SAMPLE_RATE;
 
-    // cache the waveforms (as sample rate is known to be accurate on PluginProcess construction)
-
-    TablePool::setTable( WaveGenerator::generate( WaveGenerator::WaveForms::SINE ),     WaveGenerator::WaveForms::SINE );
-    TablePool::setTable( WaveGenerator::generate( WaveGenerator::WaveForms::TRIANGLE ), WaveGenerator::WaveForms::TRIANGLE );
-    TablePool::setTable( WaveGenerator::generate( WaveGenerator::WaveForms::SAWTOOTH ), WaveGenerator::WaveForms::SAWTOOTH );
-    TablePool::setTable( WaveGenerator::generate( WaveGenerator::WaveForms::SQUARE ),   WaveGenerator::WaveForms::SQUARE );
+    _channelStates.resize( amountOfChannels );
+    _lowPassFilters.resize( amountOfChannels );
+    _makeUpGainProcessors.resize( amountOfChannels );
+    _reverbs.resize( amountOfChannels );
+    _waveTables.resize( amountOfChannels );
 
     _gateWaveForm = WaveGenerator::WaveForms::SINE;
-    for ( size_t i = 0; i < _amountOfChannels; ++i ) {
-        _waveTables.push_back( TablePool::getTable( _gateWaveForm )->clone() );
-    }
+    
+    setHostProperties( sampleRate, maxBufferSize );
 
     // these will be synced to host, see vst.cpp. here we default to 120 BPM in 4/4 time
 
-    setTempo( 120.0, 4, 4 );
-
-    // child processors that can work on any audio channel
-    // (e.g. don't maintain the last channel-specific state)
-
-    bitCrusher = new BitCrusher( 8, .5f, .5f );
-    limiter    = new Limiter( 10.f, 500.f, .6f );
-
-    // child processors and properties that work on individual channels
-
-    _lastSamples  = new float[ amountOfChannels ];
-    _readPointers = new float[ amountOfChannels ];
+    setTempo( 120.f, 4, 4 );
 
     for ( int i = 0; i < amountOfChannels; ++i ) {
-        _lastSamples[ i ]  = 0.f;
-        _readPointers[ i ] = 0.f;
-
-        _lowPassFilters.push_back( new LowPassFilter());
-
-        Reverb* reverb = new Reverb();
-        reverb->setWidth( 1.f );
-        reverb->setRoomSize( 1.f );
-
-        _reverbs.push_back( reverb );
+        _reverbs.at( i ).setWidth( 1.f );
+        _reverbs.at( i ).setRoomSize( 1.f );
     }
 
     setPlaybackRate( 1.f );
     setResampleRate( 1.f );
-
-    // will be lazily created in the process function
-    _recordBuffer = nullptr;
-    _preMixBuffer = nullptr;
 }
 
 PluginProcess::~PluginProcess() {
-    delete bitCrusher;
-    delete limiter;
-
-    delete[] _lastSamples;
-    delete[] _readPointers;
-
-    while ( _lowPassFilters.size() > 0 ) {
-        delete _lowPassFilters.at( 0 );
-        _lowPassFilters.erase( _lowPassFilters.begin() );
-    }
-
-    while ( _reverbs.size() > 0 ) {
-        delete _reverbs.at( 0 );
-        _reverbs.erase( _reverbs.begin() );
-    }
-
+    delete[] _scratchBuffer;
     delete _preMixBuffer;
     delete _recordBuffer;
-
-    clearGateTables();
 
     TablePool::flush();
 }
 
 /* setters */
+
+void PluginProcess::setHostProperties( float sampleRate, int maxBufferSize ) {
+    bool hadSampleRateChange = _hostSampleRate != sampleRate;
+
+    cacheMaxDownSample( sampleRate );
+    _hostSampleRate = sampleRate;
+
+    if ( hadSampleRateChange ) {
+        TablePool::flush();
+
+        TablePool::setTable( WaveGenerator::generate( WaveGenerator::WaveForms::SINE, sampleRate ),     WaveGenerator::WaveForms::SINE );
+        TablePool::setTable( WaveGenerator::generate( WaveGenerator::WaveForms::TRIANGLE, sampleRate ), WaveGenerator::WaveForms::TRIANGLE );
+        TablePool::setTable( WaveGenerator::generate( WaveGenerator::WaveForms::SAWTOOTH, sampleRate ), WaveGenerator::WaveForms::SAWTOOTH );
+        TablePool::setTable( WaveGenerator::generate( WaveGenerator::WaveForms::SQUARE, sampleRate ),   WaveGenerator::WaveForms::SQUARE );
+
+        setResampleRate( _downSampleNormalised );
+
+        for ( int c = 0; c < _amountOfChannels; ++c ) {
+            _makeUpGainProcessors.at( c ).prepare( sampleRate );
+            _reverbs.at( c ).setSampleRate( sampleRate );
+            _waveTables.at( c ).clone( TablePool::getTable( _gateWaveForm ));
+            _waveTables.at( c ).setSampleRate( sampleRate );
+        }
+    }
+
+    if ( _hostBufferSize < maxBufferSize ) {
+        _hostBufferSize = maxBufferSize;
+       
+        delete[] _scratchBuffer;
+        _scratchBuffer = new float[ _hostBufferSize ];
+
+        // if the record buffer wasn't created yet or the buffer size has changed
+        // delete existing buffer and create new one to match properties
+
+        int idealRecordSize = Calc::secondsToBuffer( VST::MAX_RECORD_SECONDS, _hostSampleRate );
+        int recordSize      = idealRecordSize + idealRecordSize % _hostBufferSize;
+
+        if ( _recordBuffer == nullptr || _recordBuffer->bufferSize != recordSize ) {
+            delete _recordBuffer;
+            _recordBuffer = new AudioBuffer( _amountOfChannels, recordSize );
+            _maxRecordBufferSize = recordSize;
+            resetReadWritePointers();
+        }
+
+        // if the pre mix buffer wasn't created yet or the buffer size has changed
+        // delete existing buffer and create new one to match properties
+
+        if ( _preMixBuffer == nullptr || _preMixBuffer->bufferSize != _hostBufferSize ) {
+            delete _preMixBuffer;
+            _preMixBuffer = new AudioBuffer( _amountOfChannels, _hostBufferSize );
+        }
+    }
+}
 
 void PluginProcess::setDryMix( float value )
 {
@@ -133,7 +143,7 @@ void PluginProcess::setGateSpeed( float oddSteps, float evenSteps, bool linkGate
         for ( size_t i = 0; i < _amountOfChannels; ++i ) {
             bool isEvenChannel = ( i % 2 ) == 1;
             if ( isEvenChannel ) {
-                _waveTables.at( i )->setAccumulator( _waveTables.at( i - 1 )->getAccumulator() );
+                _waveTables.at( i ).setAccumulator( _waveTables.at( i - 1 ).getAccumulator() );
             }
         }
     }
@@ -152,7 +162,7 @@ void PluginProcess::setOddGateSpeed( float steps ) {
     for ( size_t i = 0; i < _amountOfChannels; ++i ) {
         bool isOddChannel = ( i % 2 ) == 0;
         if ( isOddChannel ) {
-            _waveTables.at( i )->setFrequency( value );
+            _waveTables.at( i ).setFrequency( value );
         }
     }
 }
@@ -165,8 +175,40 @@ void PluginProcess::setEvenGateSpeed( float steps ) {
     for ( size_t i = 0; i < _amountOfChannels; ++i ) {
         bool isEvenChannel = ( i % 2 ) == 1;
         if ( isEvenChannel ) {
-            _waveTables.at( i )->setFrequency( value );
+            _waveTables.at( i ).setFrequency( value );
         }
+    }
+}
+
+void PluginProcess::cacheMaxDownSample( float sampleRate )
+{
+    _maxDownSample = sampleRate / VST::MIN_SAMPLE_RATE;
+}
+
+void PluginProcess::setActualDownSampling( float value )
+{
+    bool wasDownSampled     = isDownSampled();
+    _actualDownSampleAmount = value;
+    cacheDownSamplingValues();
+
+    // if down sampling is deactivated and there is no playback slowdown taking place:
+    // sync the read pointer with the write pointer
+
+    if ( wasDownSampled && !isDownSampled() && !isSlowedDown() ) {
+        syncFilterPointers();
+    }
+}
+
+void PluginProcess::cacheDownSamplingValues()
+{
+    _sampleIncr = static_cast<int>( roundf( _actualDownSampleAmount ));
+    _sampleIncr = std::max( 1, std::min( _sampleIncr, static_cast<int>( _maxDownSample )));
+
+    // update the lowpass filters to the appropriate cutoff
+
+    float ratio = 1.f + ( _actualDownSampleAmount / _maxDownSample );
+    for ( int c = 0; c < _amountOfChannels; ++c ) {
+        _lowPassFilters.at( c ).setRatio( ratio );
     }
 }
 
@@ -184,16 +226,13 @@ void PluginProcess::randomizeGateSpeed( float randomSteps )
 void PluginProcess::resetReadWritePointers()
 {
     _writePointer = 0;
-
-    for ( size_t i = 0; i < _amountOfChannels; ++i ) {
-        _readPointers[ i ] = 0.f;
-    }
+    syncFilterPointers();
 }
 
 void PluginProcess::resetGates()
 {
     for ( auto waveTable : _waveTables ) {
-        waveTable->setAccumulator( 0 );
+        waveTable.setAccumulator( 0 );
     }
 }
 
@@ -206,30 +245,32 @@ void PluginProcess::clearRecordBuffer()
 
 void PluginProcess::setResampleRate( float value )
 {
-    float scaledAmount = Calc::scale( value, 1.f, _maxDownSample - 1.f ) + 1.f;
+    float normalisedDownSampleAmount = normalisedToDownSampleAmount( value );
+    
+    // no change in either resample rate or host sample rate value
+    // no need to trigger changes
 
-    if ( scaledAmount == _downSampleAmount ) {
-        return; // don't trigger changes if value is the same
+    if ( normalisedDownSampleAmount == _downSampleAmount ) {
+        return;
     }
+
     bool wasDownSampled = isDownSampled();
-    _downSampleAmount   = scaledAmount;
+    float tempRatio = _actualDownSampleAmount / std::max( 0.000000001f, _downSampleAmount );
 
-    _fSampleIncr = std::max( 1.f, floor( _downSampleAmount ));
-    _sampleIncr  = ( int ) _fSampleIncr;
+    // this should reflect the value visible in the UI
+    _targetRate = VST::MIN_SAMPLE_RATE + value * ( _hostSampleRate - VST::MIN_SAMPLE_RATE );
+    
+    _downSampleNormalised = value;
+    _downSampleAmount = normalisedDownSampleAmount;
 
-    // update the lowpass filters to the appropriate cutoff
-
-    float ratio = 1.f + ( _downSampleAmount / _maxDownSample );
-    for ( auto lowPassFilter : _lowPassFilters ) {
-        lowPassFilter->setRatio( ratio );
-    }
+    setActualDownSampling( _downSampleAmount );
 
     // if down sampling is deactivated and there is no playback slowdown taking place:
     // sync the read pointer with the write pointer
 
     if ( wasDownSampled && !isDownSampled() && !isSlowedDown() ) {
-        for ( size_t i = 0; i < _amountOfChannels; ++i ) {
-            _readPointers[ i ] = ( float ) _writePointer;
+        for ( size_t c = 0; c < _amountOfChannels; ++c ) {
+            _channelStates[ c ].readPointer = static_cast<float>( _writePointer );
         }
     }
 }
@@ -239,7 +280,7 @@ void PluginProcess::setPlaybackRate( float value )
     // rate is in 0 - 1 range, playback rate speed support is between 0.5 (half speed) - 1.0f (full speed)
     // note we invert the value as a higher value should imply a higher slowdown
 
-    float scaledAmount = Calc::scale( abs( value - 1.f ), 1, MIN_PLAYBACK_SPEED ) + MIN_PLAYBACK_SPEED;
+    float scaledAmount = Calc::scale( abs( value - 1.f ), 1, VST::MIN_PLAYBACK_SPEED ) + VST::MIN_PLAYBACK_SPEED;
 
     if ( scaledAmount == _playbackRate ) {
         return; // don't trigger changes if value is the same
@@ -251,8 +292,8 @@ void PluginProcess::setPlaybackRate( float value )
     // if slowdown is deactivated sync the read pointer with the write pointer
 
     if ( wasSlowedDown && !isSlowedDown() ) {
-        for ( size_t i = 0; i < _amountOfChannels; ++i ) {
-            _readPointers[ i ] = ( float ) _writePointer;
+        for ( size_t c = 0; c < _amountOfChannels; ++c ) {
+            _channelStates[ c ].readPointer = static_cast<float>( _writePointer );
         }
     }
 }
@@ -269,7 +310,7 @@ void PluginProcess::setHarmony( float value )
 
     float odd  = 1.f;
     float even = 1.f;
-    int scaled = ( int ) round( 5.f * value );
+    int scaled = static_cast<int>( round( 5.f * value ));
     switch ( scaled ) {
         // major
         default:
@@ -330,7 +371,7 @@ bool PluginProcess::setTempo( double tempo, int32 timeSigNumerator, int32 timeSi
     _tempo              = tempo;
 
     _fullMeasureDuration = ( 60.f / _tempo ) * _timeSigDenominator; // seconds per measure
-    _fullMeasureSamples  = Calc::secondsToBuffer( _fullMeasureDuration );
+    _fullMeasureSamples  = Calc::secondsToBuffer( _fullMeasureDuration, _hostSampleRate );
     _halfMeasureSamples  = ceil( _fullMeasureSamples / 2 );
     _beatSamples         = ceil( _fullMeasureSamples / _timeSigDenominator );
     _sixteenthSamples    = ceil( _fullMeasureSamples / 16 );
@@ -361,7 +402,7 @@ void PluginProcess::createGateTables( float normalizedWaveFormType ) {
     float* newBuffer = TablePool::getTable( waveForm )->getBuffer();
 
     for ( size_t c = 0; c < _amountOfChannels; ++c ) {
-        float* buffer = _waveTables.at( c )->getBuffer();
+        float* buffer = _waveTables.at( c ).getBuffer();
         for ( size_t i = 0; i < Igorski::VST::TABLE_SIZE; ++i ) {
             buffer[ i ] = newBuffer[ i ];
         }
@@ -370,15 +411,6 @@ void PluginProcess::createGateTables( float normalizedWaveFormType ) {
 
 void PluginProcess::syncGates() {
 
-}
-
-/* private methods */
-
-void PluginProcess::clearGateTables() {
-    while ( _waveTables.size() > 0 ) {
-        delete _waveTables.at( 0 );
-        _waveTables.erase( _waveTables.begin() );
-    }
 }
 
 }

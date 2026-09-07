@@ -26,20 +26,30 @@
 
  AllPass::AllPass()
  {
-     _bufIndex = 0;
-     setFeedback( 0.5f );
+    _buffer = nullptr;
+    _bufIndex = 0;
+    setFeedback( 0.5f );
  }
 
- void AllPass::setBuffer( float *buf, int size )
+ AllPass::~AllPass()
  {
-     _buffer  = buf;
-     _bufSize = size;
+    delete[] _buffer;
+ }
+
+ /* public methods */
+
+ void AllPass::createBuffer( int size )
+ {
+    delete[] _buffer;
+ 
+    _buffer  = new float[ size ];
+    _bufSize = size;
  }
 
  void AllPass::mute()
  {
      for ( int i = 0; i < _bufSize; i++ ) {
-         _buffer[ i ] = 0;
+         _buffer[ i ] = 0.f;
      }
  }
 

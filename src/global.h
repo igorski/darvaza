@@ -19,10 +19,17 @@ namespace VST {
     static const FUID PluginWithSideChainProcessorUID( 0x955D4A80, 0x85CF461F, 0xAAD2543F, 0x5F242E0B );
     static const FUID PluginControllerUID( 0x85CF461F, 0xAAD2543F, 0x5F242E0B, 0x955D4A80 );
 
-    extern float SAMPLE_RATE; // set upon initialization, see vst.cpp
+    static const float DEFAULT_SAMPLE_RATE = 44100.f; // updated in vst.cpp#setupProcessing
+    static const int DEFAULT_BUFFER_SIZE = 2048; // updated in vst.cpp#setupProcessing
 
     static const float PI     = 3.141592653589793f;
     static const float TWO_PI = PI * 2.f;
+
+    // plugin properties
+
+    static const float MAX_RECORD_SECONDS = 30.f;
+    static const float MIN_PLAYBACK_SPEED = 0.5f;
+    static const float MIN_SAMPLE_RATE    = 2000.f;
 
     // These values are tuned to 44.1 kHz sample rate and will be
     // recalculated to match the host sample recalculated
