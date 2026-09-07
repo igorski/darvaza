@@ -123,12 +123,15 @@ set(vst_sources
     src/allpass.cpp
     src/audiobuffer.h
     src/audiobuffer.cpp
+    src/automakeupgain.h
+    src/automakeupgain.cpp
     src/bitcrusher.h
     src/bitcrusher.cpp
     src/comb.h
     src/comb.cpp
     src/limiter.h
     src/limiter.cpp
+    src/linearsmoothing.h
     src/lowpassfilter.h
     src/lowpassfilter.cpp
     src/paramids.h

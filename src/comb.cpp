@@ -26,20 +26,30 @@
 
  Comb::Comb()
  {
-     _filterStore = 0;
-     _bufIndex    = 0;
+    _buffer = nullptr;
+    _filterStore = 0;
+    _bufIndex = 0;
  }
 
- void Comb::setBuffer( float *buf, int size )
+ Comb::~Comb()
  {
-     _buffer  = buf;
-     _bufSize = size;
+    delete[] _buffer;
+ }
+
+ /* public methods */
+
+ void Comb::createBuffer( int size )
+ {
+    delete[] _buffer;
+
+    _buffer  = new float[ size ];
+    _bufSize = size;
  }
 
  void Comb::mute()
  {
      for ( int i = 0; i < _bufSize; i++ ) {
-         _buffer[ i ] = 0;
+         _buffer[ i ] = 0.f;
      }
  }
 

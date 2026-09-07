@@ -32,13 +32,13 @@ using namespace Igorski::VST;
 namespace Igorski {
 namespace WaveGenerator
 {
-    WaveTable* generate( WaveForms waveformType )
+    WaveTable* generate( WaveForms waveformType, float sampleRate )
     {
-        WaveTable* waveTable = new WaveTable( TABLE_SIZE, 440.f );
+        WaveTable* waveTable = new WaveTable();
 
         float* outputBuffer = waveTable->getBuffer();
 
-        if ( VST::SAMPLE_RATE <= ( WAVEFORM_CACHE_SAMPLE_RATE * 2 )) {
+        if ( sampleRate <= ( WAVEFORM_CACHE_SAMPLE_RATE * 2 )) {
             // when the sample rate is in roughly the same ballpark as the cached tables we
             // just assign the cached contents directly to the WaveTable and skip runtime
             // rendering (as it is CPU heavy)
@@ -68,7 +68,7 @@ namespace WaveGenerator
         float power, baseFrequency = 440;
         // note we cap the max sample rate (the Steinberg validator test goes into million Hz territory...)
         // for now it's safe to assume no VST will be used in gHz sampling rate projects...
-        float nyquist = fminf( 384000.f, VST::SAMPLE_RATE  ) / 2.f;
+        float nyquist = fminf( 384000.f, sampleRate ) / 2.f;
 
         // every other MIDI note (127 values)
         for ( int i = -69; i <= 58; i += 2 )
@@ -81,7 +81,7 @@ namespace WaveGenerator
 
             // unique to triangle generation
 
-            float delta      = 1.f / (( float ) TABLE_SIZE / 2 );
+            float delta      = 1.f / static_cast<float>( TABLE_SIZE / 2 );
             float lastSample = 0.0;
 
             for ( int t = 0; t < TABLE_SIZE; t++ )
@@ -92,30 +92,30 @@ namespace WaveGenerator
                 for ( int s = 1; s <= partials; ++s )
                 {
                     // smoothing of sharp transitions
-                    gibbs  = cos(( float )( s - 1.0 ) * VST::PI / ( 2.0 * ( float ) partials ));
+                    gibbs  = cos( static_cast<float>( s - 1 ) * VST::PI / ( 2.0 * static_cast<float>( partials )));
                     gibbs *= gibbs;
 
                     // generation of the waveform
                     switch ( waveformType )
                     {
                         case WaveForms::SINE:
-                            sample += gibbs * sin(( float ) s * VST::TWO_PI * ( float ) t / TABLE_SIZE );
+                            sample += gibbs * sin( static_cast<float>( s ) * VST::TWO_PI * static_cast<float>( t ) / TABLE_SIZE );
                             tmp     = sample;
                             break;
 
                         case WaveForms::TRIANGLE:
-                            sample += gibbs * sin(( float ) s * VST::TWO_PI * ( float ) t / TABLE_SIZE );
+                            sample += gibbs * sin( static_cast<float>( s ) * VST::TWO_PI * static_cast<float>( t ) / TABLE_SIZE );
                             tmp     = lastSample + (( sample >= lastSample ) ? delta : -delta );
                             break;
 
                         case WaveForms::SAWTOOTH:
-                            sample += gibbs * ( 1.0 / ( float ) s ) * sin(( float ) s * VST::TWO_PI * ( float ) t / TABLE_SIZE );
+                            sample += gibbs * ( 1.0 / static_cast<float>( s )) * sin( static_cast<float>( s ) * VST::TWO_PI * static_cast<float>( t ) / TABLE_SIZE );
                             tmp     = sample;
                             break;
 
                         case WaveForms::SQUARE:
                             // regular sine generation
-                            sample += gibbs * sin(( float ) s * VST::TWO_PI * ( float ) t / TABLE_SIZE );
+                            sample += gibbs * sin( static_cast<float>( s ) * VST::TWO_PI * static_cast<float>( t ) / TABLE_SIZE );
                             // snap to extremes
                             tmp = ( sample >= 0.0 ) ? 1.0 : -1.0;
                             break;

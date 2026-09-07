@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2020-2022 Igor Zinken - https://www.igorski.nl
+ * Copyright (c) 2020-2026 Igor Zinken - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -25,6 +25,7 @@
 
 #include "global.h"
 #include "audiobuffer.h"
+#include "automakeupgain.h"
 #include "bitcrusher.h"
 #include "limiter.h"
 #include "lowpassfilter.h"
@@ -41,17 +42,45 @@ class PluginProcess {
 
     // dithering constants
 
-    const float DITHER_WORD_LENGTH = pow( 2.0, 15 );        // 15 implies 16-bit depth
+    const float DITHER_WORD_LENGTH = pow( 2.0, 15 ); // 15 implies 16-bit depth
     const float DITHER_WI          = 1.0f / DITHER_WORD_LENGTH;
-    const float DITHER_DC_OFFSET   = DITHER_WI * 0.5f;      // apply in resampling routine to remove DC offset
-    const float DITHER_AMPLITUDE   = DITHER_WI / RAND_MAX;  // 2 LSB
+    const float DITHER_DC_OFFSET   = DITHER_WI * 0.5f; // apply in resampling routine to remove DC offset
+    const float DITHER_AMPLITUDE   = 0.00003f; // -90 dBFS
+    const float SMOOTHING          = 1.5f; // between 1 - 4
+
+    // realtime-safe cross compiler agnostic variation of rand()
+    struct Randomizer {
+        uint32 state = 0x9E3779B9; // seed
+
+        inline uint32 next() {
+            state ^= state << 13;
+            state ^= state >> 17;
+            state ^= state << 5;
+            
+            return state;
+        }
+
+        // in -1 to +1 range
+        inline float nextBipolar() {
+            return ( float )( int32 ) next() * ( 1.f / 2147483648.f );
+        }
+    };
+
+    struct ChannelState {
+        int remaining = 0;
+        int length = 1;
+        float sample = 0.f;
+        float dither = 0.f;
+        float coeff = 1.f;
+        float lastSample = 0.f; // last written value
+        int filterPointer = 0; // pointer at relevant index in lowpass filtered record buffer
+        float filteredPrev = 0.f; // last filtered sample
+        float filteredCur = 0.f; // next/current filtered sample
+        float readPointer = 0; // read pointer in record buffer (unique per channel because harmonise can move at different speed)
+    };
 
     public:
-        static constexpr float MAX_RECORD_SECONDS = 30.f;
-        static constexpr float MIN_PLAYBACK_SPEED = .5f;
-        static constexpr float MIN_SAMPLE_RATE    = 2000.f;
-
-        PluginProcess( int amountOfChannels );
+        PluginProcess( int amountOfChannels, float sampleRate, int maxBufferSize );
         ~PluginProcess();
 
         // apply effect to incoming sampleBuffer contents
@@ -61,8 +90,13 @@ class PluginProcess {
             int bufferSize, uint32 sampleFramesSize
         );
 
+        inline float normalisedToDownSampleAmount( float normalised ) {
+            return powf( _maxDownSample, 1.f - normalised );
+        }
+
         // setters
 
+        void setHostProperties( float sampleRate, int maxBufferSize );
         void setDryMix( float value );
         void setGateSpeed( float oddSteps, float evenSteps, bool linkGates );
         void randomizeGateSpeed( float randomSteps );
@@ -95,18 +129,25 @@ class PluginProcess {
 
         // child processors
 
-        BitCrusher* bitCrusher;
-        Limiter* limiter;
-        Reverb* reverb;
+        BitCrusher bitCrusher;
+        Limiter limiter;
+        Reverb reverb;
 
     private:
         int _amountOfChannels;
-        std::vector<WaveTable*> _waveTables;
+        float _hostSampleRate;
+        int _hostBufferSize = 0;
+        std::vector<ChannelState> _channelStates;
+        std::vector<LowPassFilter> _lowPassFilters;
+        std::vector<AutoMakeUpGain> _makeUpGainProcessors;
+        std::vector<Reverb> _reverbs;
+        std::vector<WaveTable> _waveTables;
+        Randomizer _randomizer;
 
-        AudioBuffer* _recordBuffer; // buffer used to record incoming signal
-        AudioBuffer* _preMixBuffer; // buffer used for the pre effect mixing
-        int _lastBufferSize = 0;    // size of the last buffer used when generating the _recordBuffer
-
+        AudioBuffer* _recordBuffer = nullptr; // buffer used to record incoming signal
+        AudioBuffer* _preMixBuffer = nullptr; // buffer used for the pre effect mixing
+        float* _scratchBuffer = nullptr; // used for make-up gain processing (reused per channel)
+     
         bool _reverbEnabled = false;
         float _dryMix = 0.f;
 
@@ -129,7 +170,6 @@ class PluginProcess {
 
         int _writePointer        = 0;
         int _maxRecordBufferSize = 0;
-        float* _readPointers;
 
         // cached values for sample accurate calculation of relevant musical positions
 
@@ -148,19 +188,22 @@ class PluginProcess {
 
         // related to playback of precorded content (when downsampling or playing at reduced speed)
 
-        float* _lastSamples; // last written sample, per channel
-        float _downSampleAmount = 0.f; // 1 == no change (original sample rate), > 1 provides down sampling
+        void cacheDownSamplingValues();
+
+        float _downSampleNormalised;
+        float _downSampleAmount; // 1 == no change (keeps at original sample rate), > 1 provides down sampling
+        float _actualDownSampleAmount;
         float _maxDownSample;
-        float _playbackRate = MIN_PLAYBACK_SPEED; // 1 == 100% (no change), < 1 is lower playback speed
-        float _fSampleIncr;
+        float _targetRate;
+        float _playbackRate = VST::MIN_PLAYBACK_SPEED; // 1 == 100% (no change), < 1 is lower playback speed
         int   _sampleIncr;
         bool  _reverse = false;
         float _harmonize = 0.f;
         float _oddPitch = 1.f;
         float _evenPitch = 1.f;
 
-        std::vector<LowPassFilter*> _lowPassFilters;
-        std::vector<Reverb*> _reverbs;
+        void cacheMaxDownSample( float sampleRate );
+        void setActualDownSampling( float amount );
 
         inline bool isSlowedDown() {
             return _playbackRate < 1.f || isHarmonized();
@@ -178,15 +221,18 @@ class PluginProcess {
             return _randomizedSpeed > 0.f;
         }
 
-        void clearGateTables();
         WaveGenerator::WaveForms _gateWaveForm;
 
-        // ensures the pre- and post mix buffers match the appropriate amount of channels
-        // and buffer size. the buffers are pooled so this can be called upon each process
-        // cycle without allocation overhead
+        // aligns read and filter pointers with the current _writePointer
 
-        template <typename SampleType>
-        void prepareMixBuffers( SampleType** inBuffer, int numInChannels, int bufferSize );
+        inline void syncFilterPointers() {
+            float readPointer = static_cast<float>( _writePointer );
+
+            for ( int c = 0; c < _amountOfChannels; ++c ) {
+                _channelStates[ c ].readPointer = readPointer;
+                _channelStates[ c ].filterPointer = static_cast<int>( readPointer );
+            }
+        }
 };
 }
 

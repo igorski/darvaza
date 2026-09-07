@@ -76,6 +76,9 @@ bool TablePool::removeTable( WaveGenerator::WaveForms waveformType )
 
 void TablePool::flush()
 {
+    if ( _cachedTables.size() == 0 ) {
+        return;
+    }
     std::map<WaveGenerator::WaveForms, WaveTable*>::iterator it;
 
     for ( it = _cachedTables.begin(); it != _cachedTables.end(); it++ )

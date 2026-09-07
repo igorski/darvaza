@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2019-2022 Igor Zinken - https://www.igorski.nl
+ * Copyright (c) 2019-2026 Igor Zinken - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -34,38 +34,6 @@ using namespace Steinberg;
 namespace Igorski {
 class Reverb {
 
-    struct CombFilter {
-        std::vector<Comb*> filters;
-        std::vector<float*> buffers;
-
-        ~CombFilter() {
-            while ( !filters.empty() ) {
-                delete filters.at( 0 );
-                filters.erase( filters.begin() );
-            }
-            while ( !buffers.empty() ) {
-                delete buffers.at( 0 );
-                buffers.erase( buffers.begin() );
-            }
-        }
-    };
-
-    struct AllPassFilter {
-        std::vector<AllPass*> filters;
-        std::vector<float*> buffers;
-
-        ~AllPassFilter() {
-            while ( !filters.empty() ) {
-                delete filters.at( 0 );
-                filters.erase( filters.begin() );
-            }
-            while ( !buffers.empty() ) {
-                delete buffers.at( 0 );
-                buffers.erase( buffers.begin() );
-            }
-        }
-    };
-
     static constexpr float MAX_RECORD_TIME_MS = 5000.f;
     static constexpr float MUTED              = 0;
     static constexpr float FIXED_GAIN         = 0.015f;
@@ -87,6 +55,8 @@ class Reverb {
         Reverb();
         ~Reverb();
 
+        void setSampleRate( float sampleRate );
+
         // apply effect to incoming sampleBuffer contents
 
         void process( float* inBuffer, int bufferSize );
@@ -101,13 +71,13 @@ class Reverb {
             // accumulate comb filters in parallel
 
             for ( int i = 0; i < VST::NUM_COMBS; i++ ) {
-                processedSample += _combFilter->filters.at( i )->process( inputSample );
+                processedSample += _combFilters.at( i ).process( inputSample );
             }
 
             // feed through all pass filters in series
 
             for ( int i = 0; i < VST::NUM_ALLPASSES; i++ ) {
-                processedSample = _allpassFilter->filters.at( i )->process( processedSample );
+                processedSample = _allpassFilters.at( i ).process( processedSample );
             }
 
             // wet mix (e.g. the reverberated signal) and dry mix (e.g. mix in the input signal)
@@ -136,6 +106,7 @@ class Reverb {
         void clearFilters(); // frees memory allocated to comb and allpass filter buffers
         void update();
 
+        float _sampleRate;
         float _gain;
         float _roomSize, _roomSize1;
         float _damp, _damp1;
@@ -144,9 +115,10 @@ class Reverb {
         float _width;
         float _mode;
 
-        CombFilter*     _combFilter   = nullptr;
-        AllPassFilter* _allpassFilter = nullptr;
+        std::vector<Comb> _combFilters;
+        std::vector<AllPass> _allpassFilters;
 };
+
 }
 
 #endif

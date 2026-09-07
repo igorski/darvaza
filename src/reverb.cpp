@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2019-2022 Igor Zinken - https://www.igorski.nl
+ * Copyright (c) 2019-2026 Igor Zinken - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -27,7 +27,7 @@
 namespace Igorski {
 
 Reverb::Reverb() {
-    setupFilters();
+    setSampleRate( VST::DEFAULT_SAMPLE_RATE );
 
     setWet     ( INITIAL_WET );
     setRoomSize( INITIAL_ROOM );
@@ -42,6 +42,14 @@ Reverb::Reverb() {
 
 Reverb::~Reverb() {
     clearFilters();
+}
+
+/* public methods */
+
+void Reverb::setSampleRate( float sampleRate )
+{
+    _sampleRate = sampleRate;
+    setupFilters();
 }
 
 void Reverb::process( float* inBuffer, int bufferSize )
@@ -60,11 +68,11 @@ void Reverb::mute()
     }
 
     for ( int i = 0; i < VST::NUM_COMBS; i++ ) {
-        _combFilter->filters.at( i )->mute();
+        _combFilters.at( i ).mute();
     }
 
     for ( int i = 0; i < VST::NUM_ALLPASSES; i++ ) {
-        _allpassFilter->filters.at( i )->mute();
+        _allpassFilters.at( i ).mute();
     }
 }
 
@@ -145,43 +153,33 @@ void Reverb::setupFilters()
     // create filters and buffers per output channel
 
     // comb filter
-    _combFilter = new CombFilter();
+    _combFilters.resize( VST::NUM_COMBS );
 
     for ( int i = 0; i < VST::NUM_COMBS; ++i ) {
         // tune the comb to the host environments sample rate
-        int tuning = ( int ) ((( float ) VST::COMB_TUNINGS[ i ] / 44100.f ) * VST::SAMPLE_RATE );
+        int tuning = static_cast<int>((( static_cast<float>( VST::COMB_TUNINGS[ i ]) / 44100.f ) * _sampleRate ));
         int size = tuning + ( /*c **/ STEREO_SPREAD );
-        float* buffer = new float[ size ];
-
-        Comb* comb = new Comb();
-        comb->setBuffer( buffer, size );
-
-        _combFilter->filters.push_back( comb );
-        _combFilter->buffers.push_back( buffer );
+        
+        _combFilters.at( i ).createBuffer( size );
     }
 
     // all pass filter
 
-    _allpassFilter = new AllPassFilter();
+    _allpassFilters.resize( VST::NUM_ALLPASSES );
 
     for ( int i = 0; i < VST::NUM_ALLPASSES; ++i ) {
         // tune the comb to the host environments sample rate
-        int tuning = ( int ) ((( float ) VST::ALLPASS_TUNINGS[ i ] / 44100.f ) * VST::SAMPLE_RATE );
+        int tuning = static_cast<int>((( static_cast<float>( VST::ALLPASS_TUNINGS[ i ] ) / 44100.f ) * _sampleRate ));
         int size = tuning + ( /*c **/ STEREO_SPREAD );
-        float* buffer = new float[ size ];
 
-        AllPass* allPass = new AllPass();
-        allPass->setBuffer( buffer, size );
-
-        _allpassFilter->filters.push_back( allPass );
-        _allpassFilter->buffers.push_back( buffer );
+        _allpassFilters.at( i ).createBuffer( size );
     }
 }
 
 void Reverb::clearFilters()
 {
-    delete _combFilter;
-    delete _allpassFilter;
+    _combFilters.clear();
+    _allpassFilters.clear();
 }
 
 void Reverb::update()
@@ -191,7 +189,7 @@ void Reverb::update()
     _wet1 = _wet * ( _width / 2 + 0.5f );
     _wet2 = _wet * (( 1 - _width ) / 2 );
 
-    if ( _mode >= FREEZE_MODE ){
+    if ( _mode >= FREEZE_MODE ) {
         _roomSize1 = 1;
         _damp1     = 0;
         _gain      = MUTED;
@@ -203,8 +201,8 @@ void Reverb::update()
     }
 
     for ( int i = 0; i < VST::NUM_COMBS; i++ ) {
-        _combFilter->filters.at( i )->setFeedback( _roomSize1 );
-        _combFilter->filters.at( i )->setDamp( _damp1 );
+        _combFilters.at( i ).setFeedback( _roomSize1 );
+        _combFilters.at( i ).setDamp( _damp1 );
     }
 }
 

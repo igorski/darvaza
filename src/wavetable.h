@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2014-2022 Igor Zinken - https://www.igorski.nl
+ * Copyright (c) 2014-2026 Igor Zinken - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,15 +24,16 @@
 #define __WAVETABLE_H_INCLUDED__
 
 #include "global.h"
+#include "waveforms.h"
 
 namespace Igorski {
 class WaveTable
 {
     public:
-        WaveTable( int aTableLength, float aFrequency );
+        WaveTable( int tableLength = Igorski::VST::TABLE_SIZE, float frequency = 440.f );
         ~WaveTable();
 
-        int tableLength;
+        void setSampleRate( float sampleRate );
         float* getBuffer();
         void setBuffer( float* aBuffer );
 
@@ -54,27 +55,29 @@ class WaveTable
         inline float peek()
         {
             // the wave table offset to read from
-            int readOffset = ( _accumulator == 0 ) ? 0 : ( int ) ( _accumulator / _sampleRateOverLength );
+            int readOffset = ( _accumulator == 0 ) ? 0 : static_cast<int>( _accumulator / _sampleRateOverLength );
 
             // increment the accumulators read offset
             _accumulator += _frequency;
 
             // keep the accumulator in the bounds of the sample frequency
-            if ( _accumulator > VST::SAMPLE_RATE )
-                _accumulator -= VST::SAMPLE_RATE;
+            if ( _accumulator > _sampleRate )
+                _accumulator -= _sampleRate;
 
             // return the sample present at the calculated offset within the table
             return _buffer[ readOffset ];
         }
 
         void cloneTable( WaveTable* waveTable );
-        WaveTable* clone();
+        void clone( WaveTable* waveTable );
 
     protected:
         float* _buffer;       // cached buffer (is a wave table)
         float _accumulator;   // is read offset in wave table buffer
         float _frequency;     // frequency (in Hz) of waveform cycle when reading
         float _sampleRateOverLength;
+        float _sampleRate;
+        int _tableLength;
 
         float* generateSilentBuffer( int bufferSize );
 };
