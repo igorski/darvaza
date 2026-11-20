@@ -65,7 +65,7 @@ float AutoMakeUpGain::computeRMS( const float* data, int numSamples )
         auto sampleValue = static_cast<double>( data[ i ]);
         sumSquares += sampleValue * sampleValue;
     }
-    return static_cast<float>( std::sqrt( sumSquares / ( double ) numSamples + 1e-12 ));
+    return static_cast<float>( std::sqrt( sumSquares / static_cast<double>( numSamples ) + 1e-12 ));
 }
 
 } // E.O. namespace

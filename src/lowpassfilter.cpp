@@ -44,7 +44,7 @@ LowPassFilter::~LowPassFilter()
 void LowPassFilter::setRatio( float frequencyRatio )
 {
     const float proportionalRate = frequencyRatio > 1.0f ? 0.5f / frequencyRatio : 0.5f  * frequencyRatio;
-    const float n = 1.f / tan(( float ) VST::PI * std::max( 0.001f, proportionalRate ));
+    const float n = 1.f / tan( VST::PI * std::max( 0.001f, proportionalRate ));
     const float nSquared = n * n;
     const float c1 = 1.f / ( 1.f + SQRT_TWO * n + nSquared );
 

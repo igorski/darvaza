@@ -62,7 +62,7 @@ class PluginProcess {
 
         // in -1 to +1 range
         inline float nextBipolar() {
-            return ( float )( int32 ) next() * ( 1.f / 2147483648.f );
+            return static_cast<float>( next()) * ( 1.f / 2147483648.f );
         }
     };
 
@@ -135,7 +135,7 @@ class PluginProcess {
 
     private:
         int _amountOfChannels;
-        float _hostSampleRate;
+        float _hostSampleRate = 0.f;
         int _hostBufferSize = 0;
         std::vector<ChannelState> _channelStates;
         std::vector<LowPassFilter> _lowPassFilters;

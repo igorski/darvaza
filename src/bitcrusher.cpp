@@ -87,7 +87,7 @@ void BitCrusher::setOutputMix( float value )
 void BitCrusher::calcBits()
 {
     // scale float to 1 - 16 bit range
-    _bits = ( int ) floor( Calc::scale( _amount, 1, 15 )) + 1;
+    _bits = static_cast<int>( floor( Calc::scale( _amount, 1, 15 ))) + 1;
 }
 
 }
