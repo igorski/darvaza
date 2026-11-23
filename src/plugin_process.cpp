@@ -49,7 +49,6 @@ PluginProcess::PluginProcess( int amountOfChannels, float sampleRate, int maxBuf
         _reverbs.at( i ).setWidth( 1.f );
         _reverbs.at( i ).setRoomSize( 1.f );
     }
-
     setPlaybackRate( 1.f );
     setResampleRate( 1.f );
 }
@@ -65,7 +64,7 @@ PluginProcess::~PluginProcess() {
 /* setters */
 
 void PluginProcess::setHostProperties( float sampleRate, int maxBufferSize ) {
-    bool hadSampleRateChange = _hostSampleRate != sampleRate;
+    bool hadSampleRateChange = _hostSampleRate == 0.f || _hostSampleRate != sampleRate;
 
     cacheMaxDownSample( sampleRate );
     _hostSampleRate = sampleRate;
@@ -88,7 +87,7 @@ void PluginProcess::setHostProperties( float sampleRate, int maxBufferSize ) {
         }
     }
 
-    if ( _hostBufferSize < maxBufferSize ) {
+    if ( _hostBufferSize == 0 || _hostBufferSize < maxBufferSize ) {
         _hostBufferSize = maxBufferSize;
        
         delete[] _scratchBuffer;
@@ -231,8 +230,8 @@ void PluginProcess::resetReadWritePointers()
 
 void PluginProcess::resetGates()
 {
-    for ( auto waveTable : _waveTables ) {
-        waveTable.setAccumulator( 0 );
+    for ( auto &waveTable : _waveTables ) {
+        waveTable.setAccumulator( 0.f );
     }
 }
 
@@ -245,12 +244,13 @@ void PluginProcess::clearRecordBuffer()
 
 void PluginProcess::setResampleRate( float value )
 {
-    float normalisedDownSampleAmount = normalisedToDownSampleAmount( value );
+    // float scaledAmount = Calc::scale( value, 1.f, _maxDownSample - 1.f ) + 1.f;
+    float scaledAmount = normalisedToDownSampleAmount( value );
     
     // no change in either resample rate or host sample rate value
     // no need to trigger changes
 
-    if ( normalisedDownSampleAmount == _downSampleAmount ) {
+    if ( scaledAmount == _downSampleAmount ) {
         return;
     }
 
@@ -261,7 +261,7 @@ void PluginProcess::setResampleRate( float value )
     _targetRate = VST::MIN_SAMPLE_RATE + value * ( _hostSampleRate - VST::MIN_SAMPLE_RATE );
     
     _downSampleNormalised = value;
-    _downSampleAmount = normalisedDownSampleAmount;
+    _downSampleAmount = scaledAmount;
 
     setActualDownSampling( _downSampleAmount );
 

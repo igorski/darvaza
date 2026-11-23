@@ -131,7 +131,6 @@ class PluginProcess {
 
         BitCrusher bitCrusher;
         Limiter limiter;
-        Reverb reverb;
 
     private:
         int _amountOfChannels;
@@ -190,13 +189,13 @@ class PluginProcess {
 
         void cacheDownSamplingValues();
 
-        float _downSampleNormalised;
-        float _downSampleAmount; // 1 == no change (keeps at original sample rate), > 1 provides down sampling
-        float _actualDownSampleAmount;
-        float _maxDownSample;
-        float _targetRate;
+        float _downSampleNormalised = 0.f;
+        float _downSampleAmount = 1.f; // 1 == no change (keeps at original sample rate), > 1 provides down sampling
+        float _actualDownSampleAmount = 1.f;
+        float _maxDownSample = 1.f;
+        float _targetRate = VST::DEFAULT_SAMPLE_RATE;
         float _playbackRate = VST::MIN_PLAYBACK_SPEED; // 1 == 100% (no change), < 1 is lower playback speed
-        int   _sampleIncr;
+        int   _sampleIncr = 1;
         bool  _reverse = false;
         float _harmonize = 0.f;
         float _oddPitch = 1.f;
