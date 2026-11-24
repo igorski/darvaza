@@ -41,7 +41,8 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
     int32 i, l;
     SampleType dryMix = static_cast<SampleType>( _dryMix );
 
-    float readPointer, tmpSample;
+    float readPointer;
+    float tmpSample;
     int writePointer;
     int writtenSamples;
 
@@ -49,7 +50,7 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
     int maxBufferPos  = bufferSize - 1;
     int maxReadOffset = _writePointer + maxBufferPos; // never read beyond the range of the current incoming input
 
-    bool playFromRecordBuffer = isSlowedDown() || isDownSampled();
+    bool playFromRecordBuffer = isSlowedDown() || isDownSampled() || _reverse;
     bool randomizeSpeed = hasRandomizedSpeed();
     bool harmonize = isHarmonized();
 
@@ -57,13 +58,14 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
     {
         bool isOddChannel = ( c % 2 ) == 0;
 
-        writePointer = _writePointer;
-
         ChannelState &state = _channelStates[ c ];
         SampleType* channelInBuffer  = inBuffer[ c ];
         SampleType* channelOutBuffer = outBuffer[ c ];
         float* channelRecordBuffer   = _recordBuffer->getBufferForChannel( c );
         float* channelPreMixBuffer   = _preMixBuffer->getBufferForChannel( c );
+
+        readPointer  = state.readPointer;
+        writePointer = _writePointer;
 
         WaveTable &table = _waveTables.at( c );
         writtenSamples = _writtenMeasureSamples;
@@ -141,8 +143,6 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
                     r1 = _randomizer.nextBipolar();
                     state.dither = DITHER_AMPLITUDE * ( r1 - r2 );
 
-                    float incr = static_cast<float>( state.length ) * _playbackRate;
-                    
                     if ( _reverse ) {
                         if (( readPointer -= incr ) < 0 ) {
                             readPointer = maxReadOffset;

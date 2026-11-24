@@ -195,6 +195,9 @@ void PluginProcess::setActualDownSampling( float value )
 
     if ( wasDownSampled && !isDownSampled() && !isSlowedDown() ) {
         syncFilterPointers();
+        for ( auto &state : _channelStates ) {
+            state.remaining = 0 ;
+        }
     }
 }
 
