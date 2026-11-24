@@ -44,6 +44,8 @@
  
     _buffer  = new float[ size ];
     _bufSize = size;
+
+    mute(); // zero initialises the buffer
  }
 
  void AllPass::mute()
