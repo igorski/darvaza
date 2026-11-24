@@ -33,14 +33,17 @@ class Comb
 {
     public:
         Comb();
-        void setBuffer( float *buf, int size );
+        ~Comb();
+
+        void createBuffer( int size );
+
         inline float process( float input )
         {
             float output = _buffer[ _bufIndex ];
-            undenormalise( output );
+            UNDENORMALISE( output );
 
             _filterStore = ( output * _damp2 ) + ( _filterStore * _damp1 );
-            undenormalise( _filterStore );
+            UNDENORMALISE( _filterStore );
 
             _buffer[_bufIndex] = input + ( _filterStore * _feedback );
             if ( ++_bufIndex >= _bufSize ) {
@@ -55,11 +58,11 @@ class Comb
         void setFeedback( float val );
 
     private:
-        float  _feedback;
-        float  _filterStore;
-        float  _damp1;
-        float  _damp2;
         float* _buffer;
+        float _feedback;
+        float _filterStore;
+        float _damp1;
+        float _damp2;
         int _bufSize;
         int _bufIndex;
 };

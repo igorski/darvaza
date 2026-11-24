@@ -33,12 +33,15 @@ class AllPass
 {
     public:
         AllPass();
-        void setBuffer( float *buf, int size );
+        ~AllPass();
+
+        void createBuffer( int size );
+        
         inline float process( float input )
         {
             float output;
             float bufout = _buffer[ _bufIndex ];
-            undenormalise( bufout );
+            UNDENORMALISE( bufout );
 
             output = -input + bufout;
             _buffer[ _bufIndex ] = input + ( bufout * _feedback );
@@ -53,8 +56,8 @@ class AllPass
         void setFeedback( float val );
 
     private:
-        float  _feedback;
-        float* _buffer;
+        float* _buffer;    
+        float _feedback;
         int _bufSize;
         int _bufIndex;
 };

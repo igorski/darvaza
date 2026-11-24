@@ -27,9 +27,13 @@
 #include <algorithm>
 #include "global.h"
 
-// internally we handle all audio as 32-bit floats (hence 0x7f800000)
-// this methods is used by comb and allpass
-#define undenormalise(sample) ((((*(uint32 *)&(sample))&0x7f800000)==0)&&((sample)!=0.f))
+/***
+ * Taken from JUCE library
+ * This macro can be applied to a float variable to check whether it contains a denormalised value, and to normalise it if necessary.
+ * On CPUs that aren't vulnerable to denormalisation problems, this will have no effect.
+ * This activates the Flush To Zero(FTZ) and Denormals Are Zero (DAZ) mode for x86 and x64
+ */
+#define UNDENORMALISE(x) { (x) += 0.1f; (x) -= 0.1f; }
 
 /**
  * convenience utilities to process values
@@ -42,18 +46,18 @@ namespace Calc {
      * convert given value in seconds to the appropriate
      * value in samples (for the current sampling rate)
      */
-    inline int secondsToBuffer( float seconds )
+    inline int secondsToBuffer( float seconds, float sampleRate )
     {
-        return ( int )( seconds * Igorski::VST::SAMPLE_RATE );
+        return static_cast<int>( seconds * sampleRate );
     }
 
     /**
      * convert given value in milliseconds to the appropriate
      * value in samples (for the current sampling rate)
      */
-    inline int millisecondsToBuffer( float milliseconds )
+    inline int millisecondsToBuffer( float milliseconds, float sampleRate )
     {
-        return secondsToBuffer( milliseconds / 1000.f );
+        return secondsToBuffer( milliseconds / 1000.f, sampleRate );
     }
 
     // convenience method to ensure given value is within the 0.f - +1.f range
@@ -105,7 +109,15 @@ namespace Calc {
     inline float scale( float value, float maxValue, float maxCompareValue )
     {
         float ratio = maxCompareValue / maxValue;
-        return ( float ) ( std::min( maxValue, value ) * ratio );
+        return std::min( maxValue, value ) * ratio;
+    }
+
+    inline float constrain( float lowerLimit, float upperLimit, float valueToConstrain )
+    {
+        if ( valueToConstrain < lowerLimit ) {
+            return lowerLimit;
+        }
+        return upperLimit < valueToConstrain ? upperLimit : valueToConstrain;
     }
 
     // cast a floating point value to a boolean true/false
@@ -121,7 +133,7 @@ namespace Calc {
 
     inline float gateSubdivision( float value )
     {
-        int scaled = ( int ) round(( 18.f * value ) + 1.f );
+        int scaled = static_cast<int>( round(( 18.f * value ) + 1.f ));
         switch ( scaled ) {
             case 1:
                 return 0.25f;
@@ -130,7 +142,7 @@ namespace Calc {
             case 3:
                 return 1;
             default:
-                return -round( 1.f / 16.f - (( float ) scaled - 3.f ));
+                return -round( 1.f / 16.f - ( static_cast<float>( scaled ) - 3.f ));
         }
     }
 
@@ -141,7 +153,7 @@ namespace Calc {
 
     inline float pitchDown( float semitones )
     {
-        return ( float ) pow( 0.94387f, -semitones );
+        return pow( 0.94387f, -semitones );
     }
 }
 }

@@ -37,8 +37,6 @@
 
 namespace Igorski {
 
-float VST::SAMPLE_RATE = 44100.f; // updated in setupProcessing()
-
 //------------------------------------------------------------------------
 // Plugin Implementation
 //------------------------------------------------------------------------
@@ -50,7 +48,7 @@ Darvaza::Darvaza()
     // register its editor class (the same as used in vstentry.cpp)
     setControllerClass( VST::PluginControllerUID );
 
-    pluginProcess = new PluginProcess( 2 );
+    pluginProcess = new PluginProcess( 2, VST::DEFAULT_SAMPLE_RATE, VST::DEFAULT_BUFFER_SIZE );
 }
 
 //------------------------------------------------------------------------
@@ -86,14 +84,20 @@ tresult PLUGIN_API Darvaza::terminate()
     return AudioEffect::terminate();
 }
 
-//------------------------------------------------------------------------
-tresult PLUGIN_API Darvaza::setActive (TBool state)
+tresult PLUGIN_API Darvaza::setActive( TBool state )
 {
-    if (state)
+    if ( state ) {
+        Steinberg::Vst::IMessage* msg = allocateMessage();
+        if ( msg ) {
+            msg->setMessageID( "setSampleRate" );
+            msg->getAttributes()->setFloat( "sampleRate", processSetup.sampleRate );
+            sendMessage( msg );
+            msg->release();
+        }
         sendTextMessage( "Darvaza::setActive (true)" );
-    else
+    } else {
         sendTextMessage( "Darvaza::setActive (false)" );
-
+    }
     // reset output level meter
     // outputGainOld = 0.f;
 
@@ -129,62 +133,62 @@ tresult PLUGIN_API Darvaza::process( ProcessData& data )
 
                     case kOddSpeedId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fOddSpeed = ( float ) value;
+                            fOddSpeed = static_cast<float>( value );
                         break;
 
                     case kEvenSpeedId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fEvenSpeed = ( float ) value;
+                            fEvenSpeed = static_cast<float>( value );
                         break;
 
                     case kLinkGatesId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fLinkGates = ( float ) value;
+                            fLinkGates = static_cast<float>( value );
                         break;
 
                     case kWaveformId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fWaveform = ( float ) value;
+                            fWaveform = static_cast<float>( value );
                         break;
 
                     case kResampleRateId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fResampleRate = ( float ) value;
+                            fResampleRate = static_cast<float>( value );
                         break;
 
                     case kPlaybackRateId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fPlaybackRate = ( float ) value;
+                            fPlaybackRate = static_cast<float>( value );
                         break;
 
                     case kReverbId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fReverb = ( float ) value;
+                            fReverb = static_cast<float>( value );
                         break;
 
                     case kHarmonizeId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fHarmonize = ( float ) value;
+                            fHarmonize = static_cast<float>( value );
                         break;
 
                     case kReverseId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fReverse = ( float ) value;
+                            fReverse = static_cast<float>( value );
                         break;
 
                     case kBitDepthId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fBitDepth = ( float ) value;
+                            fBitDepth = static_cast<float>( value );
                         break;
 
                     case kRandomSpeedId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fRandomSpeed = ( float ) value;
+                            fRandomSpeed = static_cast<float>( value );
                         break;
 
                     case kDryMixId:
                         if ( paramQueue->getPoint( numPoints - 1, sampleOffset, value ) == kResultTrue )
-                            fDryMix = ( float ) value;
+                            fDryMix = static_cast<float>( value );
                         break;
 
 // --- AUTO-GENERATED PROCESS END
@@ -525,7 +529,7 @@ tresult PLUGIN_API Darvaza::setupProcessing( ProcessSetup& newSetup )
     // here we keep a trace of the processing mode (offline,...) for example.
     currentProcessMode = newSetup.processMode;
 
-    VST::SAMPLE_RATE = newSetup.sampleRate;
+    pluginProcess->setHostProperties( newSetup.sampleRate, newSetup.maxSamplesPerBlock );
 
     syncModel();
 
@@ -634,7 +638,7 @@ void Darvaza::syncModel()
     pluginProcess->createGateTables( fWaveform ); // should come before gate speed updates
     pluginProcess->setGateSpeed( fOddSpeed, fEvenSpeed, Calc::toBool( fLinkGates ));
     pluginProcess->randomizeGateSpeed( fRandomSpeed );
-    pluginProcess->bitCrusher->setAmount( fBitDepth );
+    pluginProcess->bitCrusher.setAmount( fBitDepth );
     pluginProcess->setResampleRate( fResampleRate );
     pluginProcess->setPlaybackRate( fPlaybackRate );
     pluginProcess->enableReverse( Calc::toBool( fReverse ));
