@@ -38,21 +38,21 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
     // by the templates SampleType value. Internally we process
     // audio as floats
 
-    int32 i, l;
-    SampleType dryMix = static_cast<SampleType>( _dryMix );
-
-    float readPointer;
     float tmpSample;
+    SampleType dryMix = static_cast<SampleType>( _dryMix );
+    int32 i, l;
+    
+    bool playFromRecordBuffer = isSlowedDown() || isDownSampled() || _reverse;
+    bool randomizeSpeed = hasRandomizedSpeed();
+    bool harmonize = isHarmonized();
+
+    float readPointer; // used when playing from record buffer
     int writePointer;
     int writtenSamples;
 
     int recordMax     = _maxRecordBufferSize - 1;
     int maxBufferPos  = bufferSize - 1;
     int maxReadOffset = _writePointer + maxBufferPos; // never read beyond the range of the current incoming input
-
-    bool playFromRecordBuffer = isSlowedDown() || isDownSampled() || _reverse;
-    bool randomizeSpeed = hasRandomizedSpeed();
-    bool harmonize = isHarmonized();
 
     for ( int32 c = 0; c < numInChannels; ++c )
     {
@@ -104,7 +104,6 @@ void PluginProcess::process( SampleType** inBuffer, SampleType** outBuffer, int 
 
             LowPassFilter &lowPassFilter = _lowPassFilters.at( c );
             
-            readPointer = state.readPointer;
             int filterPointer = state.filterPointer;
             float filteredPrev = state.filteredPrev;
             float filteredCur = state.filteredCur;
